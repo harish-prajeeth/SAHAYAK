@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { partnerAPI } from '../services/api';
 import { Partner } from '../types';
+import { useTranslation } from '../utils/i18n';
 import { MapPin, Phone, Mail, CheckCircle, AlertCircle, Filter, Navigation, Loader } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -54,6 +55,7 @@ export default function PartnersPage() {
   const [filter, setFilter] = useState('all');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState('');
+  const { t } = useTranslation();
   const [mapCenter, setMapCenter] = useState<[number, number]>([15, 78]);
 
   useEffect(() => {
@@ -98,8 +100,8 @@ export default function PartnersPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-surface-900">Channel Partners</h1>
-        <p className="text-surface-500 mt-1">Find the nearest eligible lending partner</p>
+        <h1 className="text-3xl font-bold text-surface-900">{t('partner.title')}</h1>
+        <p className="text-surface-500 mt-1">{t('partner.subtitle')}</p>
       </div>
 
       {/* Location Bar */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { schemeAPI, applicationAPI } from '../services/api';
+import { useTranslation } from '../utils/i18n';
 import {
   FileSearch, Calculator, MapPin, Sparkles, ArrowRight,
   TrendingUp, Users, Banknote, Clock
@@ -11,6 +12,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [schemeCount, setSchemeCount] = useState(0);
   const [appCount, setAppCount] = useState(0);
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,24 +27,24 @@ export default function DashboardPage() {
   }, []);
 
   const stats = [
-    { label: 'Active Schemes', value: schemeCount, icon: FileSearch, color: 'from-blue-500 to-indigo-600', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-    { label: 'My Applications', value: appCount, icon: TrendingUp, color: 'from-emerald-500 to-teal-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
-    { label: 'Loan Calculator', value: 'Quick', icon: Calculator, color: 'from-amber-500 to-orange-600', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
-    { label: 'Partner Network', value: '15+', icon: MapPin, color: 'from-purple-500 to-pink-600', bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
+    { label: t('dash.stats.schemes'), value: schemeCount, icon: FileSearch, color: 'from-blue-500 to-indigo-600', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
+    { label: t('dash.stats.applications'), value: appCount, icon: TrendingUp, color: 'from-emerald-500 to-teal-600', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+    { label: t('dash.stats.calculator'), value: 'Quick', icon: Calculator, color: 'from-amber-500 to-orange-600', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
+    { label: t('dash.stats.partners'), value: '15+', icon: MapPin, color: 'from-purple-500 to-pink-600', bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
   ];
 
   const quickActions = [
-    { to: '/recommend', icon: Sparkles, label: 'Find My Scheme', desc: 'Get matched to the right scheme', color: 'bg-gradient-to-br from-primary-500 to-primary-700' },
-    { to: '/calculator', icon: Calculator, label: 'Calculate EMI', desc: 'Estimate your monthly repayment', color: 'bg-gradient-to-br from-emerald-500 to-teal-600' },
-    { to: '/partners', icon: MapPin, label: 'Find Partners', desc: 'Locate nearby lending partners', color: 'bg-gradient-to-br from-amber-500 to-orange-600' },
-    { to: '/applications', icon: FileSearch, label: 'Track Applications', desc: 'Check application status', color: 'bg-gradient-to-br from-purple-500 to-pink-600' },
+    { to: '/recommend', icon: Sparkles, label: t('dash.actions.findScheme'), desc: t('dash.actions.findScheme.desc'), color: 'bg-gradient-to-br from-primary-500 to-primary-700' },
+    { to: '/calculator', icon: Calculator, label: t('dash.actions.calculate'), desc: t('dash.actions.calculate.desc'), color: 'bg-gradient-to-br from-emerald-500 to-teal-600' },
+    { to: '/partners', icon: MapPin, label: t('dash.actions.findPartners'), desc: t('dash.actions.findPartners.desc'), color: 'bg-gradient-to-br from-amber-500 to-orange-600' },
+    { to: '/applications', icon: FileSearch, label: t('dash.actions.trackApps'), desc: t('dash.actions.trackApps.desc'), color: 'bg-gradient-to-br from-purple-500 to-pink-600' },
   ];
 
   const greeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return t('dash.greeting.morning');
+    if (h < 17) return t('dash.greeting.afternoon');
+    return t('dash.greeting.evening');
   };
 
   return (
@@ -50,7 +52,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-surface-900">{greeting()}, {user?.name?.split(' ')[0]}</h1>
-        <p className="text-surface-500 mt-1">Welcome to Surakshit — your priority sector lending companion</p>
+        <p className="text-surface-500 mt-1">{t('dash.welcome')}</p>
       </div>
 
       {/* Stats */}
@@ -74,7 +76,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-semibold text-surface-900 mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-surface-900 mb-4">{t('dash.actions.findScheme').split(' ').length > 1 ? 'Quick Actions' : t('nav.dashboard')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action, i) => (
             <Link
@@ -96,7 +98,7 @@ export default function DashboardPage() {
 
       {/* Scheme Categories */}
       <div className="card-elevated p-6">
-        <h2 className="text-lg font-semibold text-surface-900 mb-4">Available Scheme Categories</h2>
+        <h2 className="text-lg font-semibold text-surface-900 mb-4">{t('dash.categories.title')}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { name: 'Micro Finance', icon: '🏪', range: 'Up to ₹1.4L' },

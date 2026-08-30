@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { schemeAPI } from '../services/api';
 import { Scheme } from '../types';
+import { useTranslation } from '../utils/i18n';
 import { Search, Percent, Clock, Banknote, Building2 } from 'lucide-react';
 
 export default function SchemesPage() {
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -40,8 +42,8 @@ export default function SchemesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-surface-900">Government Schemes</h1>
-        <p className="text-surface-500 mt-1">Explore available priority sector lending schemes</p>
+        <h1 className="text-3xl font-bold text-surface-900">{t('scheme.title')}</h1>
+        <p className="text-surface-500 mt-1">{t('scheme.subtitle')}</p>
       </div>
 
       {/* Search */}
@@ -51,7 +53,7 @@ export default function SchemesPage() {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search schemes..."
+          placeholder={t('scheme.search')}
           className="input-field pl-11"
         />
       </div>

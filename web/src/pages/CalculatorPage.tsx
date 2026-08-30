@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { calculatorAPI } from '../services/api';
 import { Calculation } from '../types';
+import { useTranslation } from '../utils/i18n';
 import { Calculator, IndianRupee, Clock, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -39,13 +40,14 @@ export default function CalculatorPage() {
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
+  const { t } = useTranslation();
   const COLORS = ['#338bdf', '#dd3df2', '#10b981'];
 
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl">
       <div>
-        <h1 className="text-3xl font-bold text-surface-900">Loan Calculator</h1>
-        <p className="text-surface-500 mt-1">Estimate your monthly repayment and total cost</p>
+        <h1 className="text-3xl font-bold text-surface-900">{t('calc.title')}</h1>
+        <p className="text-surface-500 mt-1">{t('calc.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

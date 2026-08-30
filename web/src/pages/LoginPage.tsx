@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../utils/i18n';
 import { Shield, User } from 'lucide-react';
 
 const demoAccounts = [
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,20 +104,20 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-surface-900 mb-2">Welcome back</h2>
-            <p className="text-surface-500">Sign in with your Aadhaar to continue</p>
+            <h2 className="text-2xl font-bold text-surface-900 mb-2">{t('login.welcome')}</h2>
+            <p className="text-surface-500">{t('login.subtitle')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1.5">Aadhaar Number</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1.5">{t('login.aadhaar')}</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
                 <input
                   type="text"
                   value={aadhaar}
                   onChange={(e) => setAadhaar(e.target.value)}
-                  placeholder="Enter your Aadhaar hash"
+                  placeholder={t('login.placeholder')}
                   className="input-field pl-11"
                   required
                 />

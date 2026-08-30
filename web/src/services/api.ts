@@ -68,6 +68,18 @@ export const applicationAPI = {
     request<{ success: boolean; application: any; disbursementChain: any; rejectionInfo: any; statusHistory: any[] }>(`/applications/${id}/status`),
 };
 
+// Rejection Explainer
+export const rejectionAPI = {
+  explain: (id: number) =>
+    request<{ success: boolean; rejected: boolean; rejection?: any }>(`/applications/${id}/rejection-explainer`),
+};
+
+// Analytics
+export const analyticsAPI = {
+  dashboard: () =>
+    request<{ success: boolean; analytics: any }>('/analytics/dashboard'),
+};
+
 // Calculator
 export const calculatorAPI = {
   calculate: (params: { principal: number; interestRate: number; tenureMonths: number; moratoriumMonths?: number }) =>

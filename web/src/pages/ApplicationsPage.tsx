@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationAPI } from '../services/api';
 import { Application } from '../types';
+import { useTranslation } from '../utils/i18n';
 import { FileText, ArrowRight, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
 const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
@@ -19,6 +20,8 @@ export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { t } = useTranslation();
+
   useEffect(() => {
     applicationAPI.list().then(r => { setApplications(r.applications); setLoading(false); });
   }, []);
@@ -29,8 +32,8 @@ export default function ApplicationsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-surface-900">My Applications</h1>
-        <p className="text-surface-500 mt-1">Track your loan applications</p>
+        <h1 className="text-3xl font-bold text-surface-900">{t('app.title')}</h1>
+        <p className="text-surface-500 mt-1">{t('app.subtitle')}</p>
       </div>
 
       {loading ? (

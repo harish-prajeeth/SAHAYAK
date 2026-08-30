@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { applicationAPI } from '../services/api';
-import { ArrowLeft, CheckCircle, Clock, Send, AlertTriangle } from 'lucide-react';
+import { applicationAPI, rejectionAPI } from '../services/api';
+import { useTranslation } from '../utils/i18n';
+import { ArrowLeft, CheckCircle, Clock, Send, AlertTriangle, FileText, ExternalLink } from 'lucide-react';
 
 interface StageInfo {
   key: string;
@@ -16,7 +17,9 @@ export default function ApplicationDetailPage() {
   const [chain, setChain] = useState<{ stages: StageInfo[]; currentStage: StageInfo; completedStages: number; totalStages: number } | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [rejection, setRejection] = useState<any>(null);
+  const [rejectionDetail, setRejectionDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (id) loadStatus();
@@ -29,6 +32,12 @@ export default function ApplicationDetailPage() {
       setChain(r.disbursementChain);
       setHistory(r.statusHistory);
       setRejection(r.rejectionInfo);
+      // Load detailed rejection explainer if rejected
+      if (r.application?.status === 'rejected') {
+        rejectionAPI.explain(Number(id)).then(re => {
+          if (re.rejected) setRejectionDetail(re.rejection);
+        }).catch(() => {});
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -120,18 +129,82 @@ export default function ApplicationDetailPage() {
         </div>
       )}
 
-      {/* Rejection Info */}
+      {/* Rejection Info — Enhanced with Rejection Explainer */}
       {rejection && (
         <div className="card-elevated p-6 border-2 border-red-200 bg-red-50/50">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-red-500" />
-            <h2 className="font-semibold text-red-700">Application Rejected</h2>
+            <h2 className="font-semibold text-red-700">{t('app.applicationRej')}</h2>
           </div>
-          <div className="space-y-2 text-sm">
-            <p><strong>Reason:</strong> {rejection.reason}</p>
-            <p><strong>Category:</strong> {rejection.category}</p>
-            <p><strong>Remediation Steps:</strong> {rejection.remediation}</p>
+          
+          {/* Basic rejection info */}
+          <div className="space-y-2 text-sm mb-4">
+            <p><strong>{t('app.reason')}</strong> {rejection.reason}</p>
+            <p><strong>{t('app.category')}</strong> {rejection.category}</p>
+            <p><strong>{t('app.remediation')}</strong> {rejection.remediation}</p>
           </div>
+
+          {/* Detailed Rejection Explainer */}
+          {rejectionDetail && (
+            <div className="border-t border-red-200 pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-red-500" />
+                <h3 className="font-semibold text-red-700">{t('app.rejectionExplainer')}</h3>
+              </div>
+              
+              {/* Category Badge */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">{rejectionDetail.categoryInfo?.icon}</span>
+                <span className="badge-red">{rejectionDetail.categoryInfo?.label}</span>
+              </div>
+
+              {/* Detailed Explanation */}
+              <div className="bg-white rounded-xl p-4 border border-red-100 mb-3">
+                <p className="text-sm font-medium text-surface-700 mb-1">{t('app.explanation')}</p>
+                <p className="text-sm text-surface-600">{rejectionDetail.detailedExplanation}</p>
+              </div>
+
+              {/* Impact */}
+              <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 mb-3">
+                <p className="text-sm font-medium text-amber-700 mb-1">{t('app.impact')}</p>
+                <p className="text-sm text-amber-600">{rejectionDetail.impact}</p>
+              </div>
+
+              {/* Action Items */}
+              {rejectionDetail.actionItems?.length > 0 && (
+                <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 mb-3">
+                  <p className="text-sm font-medium text-emerald-700 mb-2">{t('app.actionItems')}</p>
+                  <ul className="space-y-1">
+                    {rejectionDetail.actionItems.map((item: string, i: number) => (
+                      <li key={i} className="text-sm text-emerald-600 flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Alternative Schemes */}
+              {rejectionDetail.alternativeSchemes?.length > 0 && (
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 mb-3">
+                  <p className="text-sm font-medium text-blue-700 mb-2">Alternative Schemes to Consider</p>
+                  {rejectionDetail.alternativeSchemes.map((s: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between py-1">
+                      <span className="text-sm text-blue-600">{s.name} ({s.code})</span>
+                      <span className="text-xs text-blue-500">{s.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Footer Info */}
+              <div className="flex items-center justify-between text-xs text-surface-400">
+                <span>{t('app.resubmitWithin')} {rejectionDetail.resubmissionDeadline}</span>
+                <span className="flex items-center gap-1"><ExternalLink className="w-3 h-3" /> {t('app.helpline')} {rejectionDetail.helpline}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

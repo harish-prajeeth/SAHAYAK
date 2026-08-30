@@ -22,12 +22,14 @@ const schemeRoutes = require('./routes/schemes');
 const partnerRoutes = require('./routes/partners');
 const applicationRoutes = require('./routes/applications');
 const calculatorRoutes = require('./routes/calculator');
+const analyticsRoutes = require('./routes/analytics');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/schemes', schemeRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/calculate', calculatorRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

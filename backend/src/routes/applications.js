@@ -119,4 +119,103 @@ router.get('/:id/status', authenticateToken, async (req, res) => {
     }
 });
 
+// Rejection Explainer — detailed reasons, categories, and remediation
+router.get('/:id/rejection-explainer', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT a.*, s.name as scheme_name, s.code as scheme_code, s.description as scheme_desc,
+                   p.name as partner_name, p.type as partner_type
+            FROM applications a
+            LEFT JOIN schemes s ON a.scheme_id = s.id
+            LEFT JOIN partners p ON a.partner_id = p.id
+            WHERE a.id = $1
+        `, [req.params.id]);
+        if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Application not found' });
+        const app = result.rows[0];
+
+        if (app.status !== 'rejected') {
+            return res.json({ success: true, rejected: false, message: 'This application has not been rejected.' });
+        }
+
+        // Build detailed rejection explanation
+        const categoryLabels = {
+            document: { label: 'Document Issue', icon: '📄', severity: 'medium', color: '#f59e0b' },
+            eligibility: { label: 'Eligibility Issue', icon: '⚠️', severity: 'high', color: '#ef4444' },
+            project: { label: 'Project/Proposal Issue', icon: '📋', severity: 'medium', color: '#f97316' },
+            partner: { label: 'Partner Issue', icon: '🏦', severity: 'low', color: '#3b82f6' },
+        };
+
+        const cat = categoryLabels[app.rejection_category] || categoryLabels.project;
+
+        // Common rejection reasons mapped to explanations
+        const commonRejections = {
+            document: [
+                { reason: 'Aadhaar verification failed', explanation: 'Your Aadhaar details do not match the information in the application. This could be due to a name mismatch, address discrepancy, or expired Aadhaar.', impact: 'Blocks processing at SCA District level' },
+                { reason: 'Missing income certificate', explanation: 'An income certificate from the competent authority is required to verify your family income for scheme eligibility.', impact: 'Cannot verify income-based eligibility' },
+                { reason: 'Incomplete KYC documents', explanation: 'PAN card, address proof, or caste certificate are missing or expired.', impact: 'Application cannot proceed beyond initial review' },
+            ],
+            eligibility: [
+                { reason: 'Income exceeds threshold', explanation: `Your annual family income exceeds the maximum limit for the ${app.scheme_name || 'selected'} scheme. Different schemes have different income caps.`, impact: 'Disqualifies from this scheme but may qualify for others' },
+                { reason: 'Partner not eligible', explanation: 'The selected channel partner has performance issues (high NPA rate or low fund utilization) that prevent them from processing new loans.', impact: 'Need to select a different eligible partner' },
+                { reason: 'Project cost out of range', explanation: `Your project cost of ₹${app.project_cost} does not fall within the eligible range for ${app.scheme_name || 'this scheme'}.`, impact: 'Need to adjust project scope or apply under a different scheme' },
+            ],
+            project: [
+                { reason: 'Incomplete business plan', explanation: 'The project proposal lacks essential components: financial projections, market analysis, or operational plan.', impact: 'Cannot assess viability of the project' },
+                { reason: 'Unviable project', explanation: 'The project does not demonstrate sufficient revenue potential to service the loan repayment.', impact: 'High risk of default — project needs restructuring' },
+                { reason: 'Duplicate application', explanation: 'A similar application for the same project type and location already exists in the system.', impact: 'Application rejected to prevent fraud' },
+            ],
+            partner: [
+                { reason: 'Partner capacity exceeded', explanation: 'The selected partner has reached their lending capacity limit for the current quarter.', impact: 'Wait for next quarter or choose another partner' },
+                { reason: 'Geographic restriction', explanation: 'The partner does not operate in your area or the nearest branch is too far.', impact: 'Select a partner with coverage in your district' },
+            ],
+        };
+
+        const categoryReasons = commonRejections[app.rejection_category] || commonRejections.project;
+        const matchedReason = categoryReasons.find(r => app.rejection_reason?.includes(r.reason)) || categoryReasons[0];
+
+        // Generate action items
+        const actionItems = [];
+        if (app.rejection_category === 'document') {
+            actionItems.push('Gather all required documents (Aadhaar, PAN, income certificate, caste certificate)');
+            actionItems.push('Verify name and address match across all documents');
+            actionItems.push('Visit nearest SCA office for document re-verification');
+        } else if (app.rejection_category === 'eligibility') {
+            actionItems.push('Check your eligibility under alternative schemes');
+            actionItems.push('Use the "Find My Scheme" tool to discover matching schemes');
+            actionItems.push('Consult with the SCA helpline for guidance');
+        } else if (app.rejection_category === 'project') {
+            actionItems.push('Revise your business plan with detailed financial projections');
+            actionItems.push('Include 3-year P&L forecast and cash flow statement');
+            actionItems.push('Add market analysis and competitor study');
+            actionItems.push('Resubmit within 30 days of rejection');
+        }
+
+        res.json({
+            success: true,
+            rejected: true,
+            applicationId: app.id,
+            schemeName: app.scheme_name,
+            partnerName: app.partner_name,
+            rejection: {
+                reason: app.rejection_reason,
+                category: app.rejection_category,
+                categoryInfo: cat,
+                detailedExplanation: matchedReason?.explanation || app.rejection_reason,
+                impact: matchedReason?.impact || 'Application cannot proceed',
+                remediationSteps: app.remediation_steps,
+                actionItems,
+                resubmissionDeadline: '30 days from rejection date',
+                helpline: '1800-XXX-XXXX (NSFDC Toll Free)',
+                alternativeSchemes: app.rejection_category === 'eligibility' ? [
+                    { name: 'Term Loan', code: 'TL', reason: 'Higher income threshold' },
+                    { name: 'Stand-Up India Loan', code: 'SUI', reason: 'For SC/ST and women entrepreneurs' },
+                ] : []
+            }
+        });
+    } catch (error) {
+        console.error('Rejection explainer error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
