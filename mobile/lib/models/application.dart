@@ -39,24 +39,40 @@ class Application {
 
   factory Application.fromJson(Map<String, dynamic> json) {
     return Application(
-      id: json['id'],
-      userId: json['user_id'],
-      schemeId: json['scheme_id'],
-      partnerId: json['partner_id'],
+      id: _toInt(json['id']),
+      userId: _toInt(json['user_id']),
+      schemeId: _toInt(json['scheme_id']),
+      partnerId: _toInt(json['partner_id']),
       projectType: json['project_type'],
-      projectCost: json['project_cost']?.toDouble(),
-      loanAmount: json['loan_amount']?.toDouble(),
+      projectCost: _toDouble(json['project_cost']),
+      loanAmount: _toDouble(json['loan_amount']),
       status: json['status'] ?? 'draft',
       currentStage: json['current_stage'],
       rejectionReason: json['rejection_reason'],
       rejectionCategory: json['rejection_category'],
       remediationSteps: json['remediation_steps'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
+      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now() : DateTime.now(),
       schemeName: json['scheme_name'],
       schemeCode: json['scheme_code'],
       partnerName: json['partner_name'],
     );
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  static int _toInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   String get statusLabel {

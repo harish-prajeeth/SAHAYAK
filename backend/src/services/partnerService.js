@@ -9,6 +9,7 @@ class PartnerService {
 
         const query = `
             SELECT p.id, p.name, p.type, p.address, p.phone, p.email,
+                   ST_Y(p.location) as latitude, ST_X(p.location) as longitude,
                    p.fund_utilization, p.npa_rate, p.supported_schemes,
                    ST_Distance(p.location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography) / 1000 as distance_km,
                    CASE WHEN p.fund_utilization >= 80 AND (p.type != 'RRB' OR p.npa_rate < 15) AND (p.type != 'NBFC-MFI' OR p.npa_rate < 3) THEN true ELSE false END as is_eligible
@@ -30,18 +31,28 @@ class PartnerService {
 
     async checkPartnerEligibility(partnerId) {
         const result = await pool.query(
-            `SELECT id, name, type, fund_utilization, npa_rate,
-                CASE WHEN fund_utilization >= 80 AND (type != 'RRB' OR npa_rate < 15) AND (type != 'NBFC-MFI' OR npa_rate < 3) THEN true ELSE false END as is_eligible,
-                CASE WHEN type = 'RRB' AND npa_rate >= 15 THEN 'RRB NPA exceeds 15% limit'
-                     WHEN type = 'NBFC-MFI' AND npa_rate >= 3 THEN 'NBFC-MFI NPA exceeds 3% limit'
-                     WHEN fund_utilization < 80 THEN 'Fund utilization below 80%' ELSE null END as eligibility_reason
-             FROM partners WHERE id = $1`, [partnerId]
+            `SELECT p.id, p.name, p.type, p.address, p.phone, p.email,
+                    ST_Y(p.location) as latitude, ST_X(p.location) as longitude,
+                    p.fund_utilization, p.npa_rate,
+                CASE WHEN p.fund_utilization >= 80 AND (p.type != 'RRB' OR p.npa_rate < 15) AND (p.type != 'NBFC-MFI' OR p.npa_rate < 3) THEN true ELSE false END as is_eligible,
+                CASE WHEN p.type = 'RRB' AND p.npa_rate >= 15 THEN 'RRB NPA exceeds 15% limit'
+                     WHEN p.type = 'NBFC-MFI' AND p.npa_rate >= 3 THEN 'NBFC-MFI NPA exceeds 3% limit'
+                     WHEN p.fund_utilization < 80 THEN 'Fund utilization below 80%' ELSE null END as eligibility_reason
+             FROM partners p
+             WHERE p.id = $1`, [partnerId]
         );
         return result.rows[0] || null;
     }
 
     async getPartnerById(partnerId) {
-        const result = await pool.query('SELECT * FROM partners WHERE id = $1', [partnerId]);
+        const result = await pool.query(
+            `SELECT p.id, p.name, p.type, p.address, p.phone, p.email,
+                    ST_Y(p.location) as latitude, ST_X(p.location) as longitude,
+                    p.fund_utilization, p.npa_rate, p.is_eligible, p.supported_schemes,
+                    p.created_at, p.updated_at
+             FROM partners p
+             WHERE p.id = $1`, [partnerId]
+        );
         return result.rows[0] || null;
     }
 
@@ -49,7 +60,14 @@ class PartnerService {
         const cached = await cacheGet('partners:all');
         if (cached) return cached;
 
-        const result = await pool.query('SELECT * FROM partners ORDER BY fund_utilization DESC');
+        const result = await pool.query(
+            `SELECT p.id, p.name, p.type, p.address, p.phone, p.email,
+                    ST_Y(p.location) as latitude, ST_X(p.location) as longitude,
+                    p.fund_utilization, p.npa_rate, p.is_eligible, p.supported_schemes,
+                    p.created_at, p.updated_at
+             FROM partners p
+             ORDER BY fund_utilization DESC`
+        );
         await cacheSet('partners:all', result.rows, 3600);
         return result.rows;
     }
