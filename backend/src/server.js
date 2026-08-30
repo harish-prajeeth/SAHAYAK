@@ -1,9 +1,13 @@
+require('dotenv').config({ override: true });
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config({ override: true });
 
-// Initialize database (creates tables)
+// Initialize database
 require('./config/database');
+
+// Initialize Redis
+const { connectRedis } = require('./config/redis');
+connectRedis();
 
 const app = express();
 const PORT = (process.env.PORT && process.env.PORT !== '0') ? process.env.PORT : 5000;
@@ -17,33 +21,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-const authRoutes = require('./routes/auth');
-const schemeRoutes = require('./routes/schemes');
-const partnerRoutes = require('./routes/partners');
-const applicationRoutes = require('./routes/applications');
-const calculatorRoutes = require('./routes/calculator');
-const analyticsRoutes = require('./routes/analytics');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/schemes', schemeRoutes);
-app.use('/api/partners', partnerRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/calculate', calculatorRoutes);
-app.use('/api/analytics', analyticsRoutes);
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/schemes', require('./routes/schemes'));
+app.use('/api/partners', require('./routes/partners'));
+app.use('/api/applications', require('./routes/applications'));
+app.use('/api/calculate', require('./routes/calculator'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Health Check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Surakshit API is running', timestamp: new Date().toISOString() });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-});
+// Error handling
+const errorHandler = require('./middleware/errorHandler');
+app.use(errorHandler);
 
-// Start Server
 app.listen(PORT, () => {
     console.log(`Surakshit API running on http://localhost:${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
 });

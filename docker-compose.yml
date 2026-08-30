@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: surakshit_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: surakshit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema:/docker-entrypoint-initdb.d
+    networks:
+      - surakshit_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: surakshit_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - surakshit_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: surakshit_backend
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/surakshit_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-surakshit-secret-key-change-in-production}
+      JWT_EXPIRY: 7d
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - surakshit_network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: surakshit_web
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - surakshit_network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: surakshit_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - backend
+    networks:
+      - surakshit_network
+    restart: unless-stopped
+
+networks:
+  surakshit_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -11,6 +11,7 @@ import PartnersPage from './pages/PartnersPage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import ApplicationDetailPage from './pages/ApplicationDetailPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ComparePage from './pages/ComparePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -34,8 +35,8 @@ export default function App() {
       <Route path="/calculator" element={<ProtectedRoute><CalculatorPage /></ProtectedRoute>} />
       <Route path="/partners" element={<ProtectedRoute><PartnersPage /></ProtectedRoute>} />
       <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
-      <Route path="/applications/:id" element={<ProtectedRoute><ApplicationDetailPage /></ProtectedRoute>} />
-      <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+      <Route path="/applications/:id" element={<ProtectedRoute><ApplicationDetailPage /></ProtectedRoute>} />        <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+      <Route path="/compare" element={<ProtectedRoute><ComparePage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

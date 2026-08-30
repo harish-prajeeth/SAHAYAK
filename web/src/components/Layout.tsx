@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation, languages, Language } from '../utils/i18n';
 import {
   LayoutDashboard, FileSearch, Calculator, MapPin,
-  FileText, LogOut, Menu, X, Shield, ChevronRight, Sparkles, BarChart3, Globe
+  FileText, LogOut, Menu, X, Shield, ChevronRight, Sparkles, BarChart3, Globe, GitCompareArrows
 } from 'lucide-react';
 
 const navItemsConfig = (t: (key: string) => string) => [
@@ -15,6 +15,7 @@ const navItemsConfig = (t: (key: string) => string) => [
   { to: '/partners', icon: MapPin, label: t('nav.partners') },
   { to: '/applications', icon: FileText, label: t('nav.applications') },
   { to: '/analytics', icon: BarChart3, label: t('nav.analytics') },
+  { to: '/compare', icon: GitCompareArrows, label: t('nav.compare') },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

@@ -1,0 +1,31 @@
+name: surakshit_mobile
+description: Surakshit - Priority Sector Lending Platform Mobile App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  http: ^1.2.0
+  shared_preferences: ^2.2.2
+  google_maps_flutter: ^2.5.3
+  geolocator: ^10.1.0
+  permission_handler: ^11.1.0
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/translations/
