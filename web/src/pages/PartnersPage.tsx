@@ -40,20 +40,18 @@ function userIcon() {
   });
 }
 
-// Component to fit map to show all markers
-function FitBounds({ partners, userLocation }: { partners: Partner[]; userLocation?: { lat: number; lng: number } | null }) {
+// Component to fit map to show all partner markers (NOT user location)
+function FitBounds({ partners }: { partners: Partner[] }) {
   const map = useMap();
   useEffect(() => {
-    if (partners.length === 0) return;
-    const allPoints: [number, number][] = partners
+    const partnerPoints: [number, number][] = partners
       .filter(p => p.latitude && p.longitude)
       .map(p => [p.latitude, p.longitude]);
-    if (userLocation) allPoints.push([userLocation.lat, userLocation.lng]);
-    if (allPoints.length > 0) {
-      const bounds = L.latLngBounds(allPoints);
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 10 });
+    if (partnerPoints.length > 0) {
+      const bounds = L.latLngBounds(partnerPoints);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
     }
-  }, [partners, userLocation, map]);
+  }, [partners, map]);
   return null;
 }
 
@@ -154,7 +152,7 @@ export default function PartnersPage() {
       <div className="card-elevated overflow-hidden" style={{ height: '400px' }}>
         <MapContainer center={[20.5, 78.9]} zoom={5} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
           <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <FitBounds partners={partners} userLocation={userLocation} />
+          <FitBounds partners={partners} />
           {userLocation && <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon()}>
             <Popup><strong>You are here</strong></Popup>
           </Marker>}
