@@ -1,75 +1,62 @@
-const db = require('../config/database');
+const pool = require('../config/database');
 
 /**
- * Haversine distance between two points
+ * Find Nearest Eligible Partners using PostGIS ST_Distance
  */
-function haversineDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-}
-
-/**
- * Find Nearest Eligible Partners
- */
-function findNearestPartners(userLat, userLng, schemeCode, limit = 5) {
-    const allPartners = db.prepare(
-        'SELECT * FROM partners WHERE is_eligible = 1'
-    ).all();
+async function findNearestPartners(userLat, userLng, schemeCode, limit = 5) {
+    const query = `
+        SELECT 
+            p.id, p.name, p.type, p.address, p.phone, p.email,
+            p.fund_utilization, p.npa_rate,
+            ST_Distance(
+                p.location::geography, 
+                ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+            ) / 1000 as distance_km,
+            CASE 
+                WHEN p.fund_utilization >= 80 
+                 AND (p.type != 'RRB' OR p.npa_rate < 15)
+                 AND (p.type != 'NBFC-MFI' OR p.npa_rate < 3)
+                THEN true ELSE false 
+            END as is_eligible
+        FROM partners p
+        WHERE 
+            p.is_eligible = true
+            AND p.fund_utilization >= 80
+            AND $3 = ANY(p.supported_schemes)
+        ORDER BY distance_km ASC
+        LIMIT $4
+    `;
     
-    const results = allPartners
-        .filter(p => {
-            const supportedSchemes = (p.supported_schemes || '').split(',').map(s => s.trim());
-            if (!supportedSchemes.includes(schemeCode)) return false;
-            if (p.fund_utilization < 80) return false;
-            if (p.type === 'RRB' && p.npa_rate >= 15) return false;
-            if (p.type === 'NBFC-MFI' && p.npa_rate >= 3) return false;
-            return true;
-        })
-        .map(p => ({
-            ...p,
-            distance: Math.round(haversineDistance(userLat, userLng, p.latitude, p.longitude) * 100) / 100,
-            isEligible: true,
-            fundStatus: p.fund_utilization >= 80 ? 'Good' : 'Needs Improvement',
-            npaStatus: p.npa_rate < 5 ? 'Healthy' : p.npa_rate < 10 ? 'Moderate' : 'High'
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, limit);
+    const result = await pool.query(query, [userLng, userLat, schemeCode, limit]);
     
-    return results;
+    return result.rows.map(row => ({
+        ...row,
+        distance: Math.round(row.distance_km * 100) / 100,
+        isEligible: row.is_eligible,
+        fundStatus: row.fund_utilization >= 80 ? 'Good' : 'Needs Improvement',
+        npaStatus: row.npa_rate < 5 ? 'Healthy' : row.npa_rate < 10 ? 'Moderate' : 'High'
+    }));
 }
 
 /**
  * Check Individual Partner Eligibility
  */
-function checkPartnerEligibility(partnerId) {
-    const partner = db.prepare('SELECT * FROM partners WHERE id = ?').get(partnerId);
-    if (!partner) return null;
-    
-    let isEligible = true;
-    let reason = null;
-    
-    if (partner.fund_utilization < 80) {
-        isEligible = false;
-        reason = 'Fund utilization below 80%';
-    } else if (partner.type === 'RRB' && partner.npa_rate >= 15) {
-        isEligible = false;
-        reason = 'RRB NPA exceeds 15% limit';
-    } else if (partner.type === 'NBFC-MFI' && partner.npa_rate >= 3) {
-        isEligible = false;
-        reason = 'NBFC-MFI NPA exceeds 3% limit';
-    }
-    
-    return { ...partner, is_eligible: isEligible, eligibility_reason: reason };
+async function checkPartnerEligibility(partnerId) {
+    const result = await pool.query(
+        `SELECT id, name, type, fund_utilization, npa_rate,
+            CASE WHEN fund_utilization >= 80 AND (type != 'RRB' OR npa_rate < 15) AND (type != 'NBFC-MFI' OR npa_rate < 3) THEN true ELSE false END as is_eligible,
+            CASE WHEN type = 'RRB' AND npa_rate >= 15 THEN 'RRB NPA exceeds 15% limit'
+                 WHEN type = 'NBFC-MFI' AND npa_rate >= 3 THEN 'NBFC-MFI NPA exceeds 3% limit'
+                 WHEN fund_utilization < 80 THEN 'Fund utilization below 80%'
+                 ELSE null END as eligibility_reason
+         FROM partners WHERE id = $1`, [partnerId]
+    );
+    return result.rows[0] || null;
 }
 
-function getPartnerById(partnerId) {
-    return db.prepare('SELECT * FROM partners WHERE id = ?').get(partnerId);
+async function getPartnerById(partnerId) {
+    const result = await pool.query('SELECT * FROM partners WHERE id = $1', [partnerId]);
+    return result.rows[0] || null;
 }
 
 module.exports = { findNearestPartners, checkPartnerEligibility, getPartnerById };

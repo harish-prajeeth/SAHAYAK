@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS partners (
     fund_utilization DECIMAL(5,2),
     npa_rate DECIMAL(5,2),
     is_eligible BOOLEAN DEFAULT true,
-    supported_schemes INTEGER[],
+    supported_schemes TEXT[],
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
