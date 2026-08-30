@@ -95,4 +95,9 @@ class ApiService {
     final result = jsonDecode(response.body);
     return result['schemes'] ?? [];
   }
+
+  static Future<Map<String, dynamic>> getAnalytics() async {
+    final response = await http.get(Uri.parse('$baseUrl/analytics/dashboard'), headers: await _getHeaders());
+    return jsonDecode(response.body);
+  }
 }
