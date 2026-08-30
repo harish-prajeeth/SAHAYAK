@@ -100,4 +100,9 @@ class ApiService {
     final response = await http.get(Uri.parse('$baseUrl/analytics/dashboard'), headers: await _getHeaders());
     return jsonDecode(response.body);
   }
+
+  static Future<Map<String, dynamic>> getAllPartners() async {
+    final response = await http.get(Uri.parse('$baseUrl/partners'), headers: await _getHeaders());
+    return jsonDecode(response.body);
+  }
 }

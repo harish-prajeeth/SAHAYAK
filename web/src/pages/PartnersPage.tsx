@@ -40,10 +40,20 @@ function userIcon() {
   });
 }
 
-// Component to recenter map
-function Recenter({ center }: { center: [number, number] }) {
+// Component to fit map to show all markers
+function FitBounds({ partners, userLocation }: { partners: Partner[]; userLocation?: { lat: number; lng: number } | null }) {
   const map = useMap();
-  useEffect(() => { map.setView(center, 10); }, [center, map]);
+  useEffect(() => {
+    if (partners.length === 0) return;
+    const allPoints: [number, number][] = partners
+      .filter(p => p.latitude && p.longitude)
+      .map(p => [p.latitude, p.longitude]);
+    if (userLocation) allPoints.push([userLocation.lat, userLocation.lng]);
+    if (allPoints.length > 0) {
+      const bounds = L.latLngBounds(allPoints);
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 10 });
+    }
+  }, [partners, userLocation, map]);
   return null;
 }
 
@@ -56,7 +66,6 @@ export default function PartnersPage() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState('');
   const { t } = useTranslation();
-  const [mapCenter, setMapCenter] = useState<[number, number]>([15, 78]);
 
   useEffect(() => {
     partnerAPI.list().then(r => { setAllPartners(r.partners); setLoading(false); });
@@ -66,19 +75,11 @@ export default function PartnersPage() {
         (pos) => {
           const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setUserLocation(loc);
-          setMapCenter([loc.lat, loc.lng]);
         },
         () => setLocationError('Location access denied. Showing all partners.')
       );
     }
   }, []);
-
-  // Auto-find nearby when location and schemes available
-  useEffect(() => {
-    if (userLocation && nearbyPartners.length === 0) {
-      findNearby();
-    }
-  }, [userLocation]);
 
   const findNearby = async () => {
     if (!userLocation) return;
@@ -97,6 +98,10 @@ export default function PartnersPage() {
   const filtered = filter === 'all' ? allPartners : allPartners.filter(p => p.type === filter);
   const partners = nearbyPartners.length > 0 ? nearbyPartners : filtered;
 
+  const handleClearNearby = () => {
+    setNearbyPartners([]);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -109,7 +114,9 @@ export default function PartnersPage() {
         <div className="flex items-center gap-2">
           <Navigation className="w-5 h-5 text-primary-500" />
           <span className="text-sm font-medium text-surface-700">
-            {userLocation ? `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` : 'Detecting location...'}
+            {userLocation
+              ? `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`
+              : locationError || 'Detecting location...'}
           </span>
         </div>
         {userLocation && (
@@ -119,9 +126,14 @@ export default function PartnersPage() {
           </button>
         )}
         {nearbyPartners.length > 0 && (
-          <span className="badge-green">{nearbyPartners.length} nearby partners found</span>
+          <>
+            <span className="badge-green">{nearbyPartners.length} nearby partners found</span>
+            <button onClick={handleClearNearby} className="text-xs text-primary-600 hover:underline ml-2">
+              Show all partners
+            </button>
+          </>
         )}
-        {locationError && <span className="text-xs text-amber-600">{locationError}</span>}
+        {!userLocation && !locationError && <span className="text-xs text-surface-400 animate-pulse">Detecting...</span>}
       </div>
 
       {/* Filter */}
@@ -140,9 +152,9 @@ export default function PartnersPage() {
 
       {/* Map */}
       <div className="card-elevated overflow-hidden" style={{ height: '400px' }}>
-        <MapContainer center={mapCenter} zoom={userLocation ? 10 : 5} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
+        <MapContainer center={[20.5, 78.9]} zoom={5} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
           <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Recenter center={mapCenter} />
+          <FitBounds partners={partners} userLocation={userLocation} />
           {userLocation && <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon()}>
             <Popup><strong>You are here</strong></Popup>
           </Marker>}
