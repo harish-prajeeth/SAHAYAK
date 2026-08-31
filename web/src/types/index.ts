@@ -74,12 +74,21 @@ export interface Recommendation {
 }
 
 export interface Calculation {
+  eqi: number;
   emi: number;
   totalPayment: number;
   totalInterest: number;
+  moratoriumInterest: number;
+  accumulatedPrincipal: number;
+  effectivePrincipal: number;
+  quarterlyRate: number;
+  totalQuarters: number;
+  moratoriumQuarters: number;
+  repaymentQuarters: number;
   effectiveTenure: number;
-  yearlySummary: { year: number; principalPaid: number; interestPaid: number; totalPaid: number; endingBalance: number }[];
-  fullSchedule: { month: number; emi: number; principal: number; interest: number; balance: number }[];
+  moratoriumMonths: number;
+  quarterlySchedule: { quarter: number; phase: string; eqi: number; principal: number; interest: number; capitalizedInterest: number; balance: number }[];
+  yearlySummary: { year: number; quarters: number; principalPaid: number; interestPaid: number; totalPaid: number; endingBalance: number }[];
 }
 
 export interface HistoryEntry {

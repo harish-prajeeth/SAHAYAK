@@ -42,8 +42,20 @@ const MAX_INCOME = 500000; // ₹5 lakh
 
 const CHANNEL_PREFERENCES = ['', 'Bank', 'NBFC-MFI'];
 
+/**
+ * NSFDC Interest Rate Spread
+ * Source: NSFDC Official Website (www.nsfdc.nic.in)
+ * "NSFDC charges 2.5% from the SCAs/CAs, which in turn shall charge 6.5% from the Beneficiaries."
+ * "NSFDC charges 2% from the SCAs/CAs for Educational Loans, which in turn shall charge 6% from the Beneficiaries."
+ */
+const INTEREST_RATE_SPREAD = {
+    standard: { nsfdcToSCA: 2.5, scaToBeneficiary: 6.5, spread: 4.0 },
+    educational: { nsfdcToSCA: 2.0, scaToBeneficiary: 6.0, spread: 4.0 },
+    source: 'NSFDC Official Website – Scheme Details Page (www.nsfdc.nic.in)'
+};
+
 module.exports = {
     STAGES, STAGE_LABELS, APPLICATION_STATUSES, REJECTION_CATEGORIES,
     PARTNER_TYPES, PROJECT_TYPES, BUSINESS_TYPES, EDUCATION_LEVELS,
-    MAX_INCOME, CHANNEL_PREFERENCES
+    MAX_INCOME, CHANNEL_PREFERENCES, INTEREST_RATE_SPREAD
 };
