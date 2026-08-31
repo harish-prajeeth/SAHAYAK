@@ -1,23 +1,47 @@
 /**
- * Financial Service — Quarterly EQI (Equal Quarterly Installment) Model
+ * ═══════════════════════════════════════════════════════════
+ * EQI CALCULATOR – MORATORIUM-ADJUSTED QUARTERLY MODEL
+ * ═══════════════════════════════════════════════════════════
  * 
- * Implements NSFDC's moratorium-adjusted quarterly repayment structure:
- * 1. During moratorium, interest accrues and capitalizes into principal
- * 2. After moratorium, borrower repays accumulated principal in equal quarterly installments
+ * Total Tenure = Scheme Max Tenure (inclusive of moratorium)
+ * Moratorium Quarters = Moratorium Months / 3
+ * Repayment Quarters (n) = Total Tenure - Moratorium Quarters
  * 
- * Formula:
- *   Step 1: Accumulated Principal = P × (1 + r)^m
- *   Step 2: EQI = [Accumulated × r × (1 + r)^n] / [(1 + r)^n - 1]
+ * Step 1: Capitalize Interest During Moratorium
+ *   Accumulated Principal = P × (1 + r)^m
+ *   Where: r = Annual Rate / 4, m = Moratorium Quarters
  * 
- * Where:
- *   P = Initial principal
- *   r = Quarterly interest rate (Annual Rate / 4)
- *   m = Moratorium quarters (moratoriumMonths / 3)
- *   n = Repayment quarters (totalQuarters - moratoriumQuarters)
+ * Step 2: Calculate EQI
+ *   EQI = [Accumulated Principal × r × (1 + r)^n] / [(1 + r)^n - 1]
+ * 
+ * Step 3: Payment Summary
+ *   Total Payment = EQI × n
+ *   Total Interest = Total Payment - Original Principal (P)
+ * 
+ * ──────────────────────────────────────────────────────────
+ * EXAMPLE: Micro Finance Scheme
+ * ──────────────────────────────────────────────────────────
+ * Loan: ₹1,00,000 @ 8%
+ * Total Tenure: 12 quarters (3 years) — INCLUSIVE of moratorium
+ * Moratorium: 1 quarter (3 months)
+ * Repayment: 11 quarters
+ * 
+ * Accumulated Principal: ₹1,02,000
+ * EQI: ₹10,422 per quarter
+ * Total Payment: ₹1,14,642
+ * Total Interest: ₹14,642
+ * ═══════════════════════════════════════════════════════════
+ * 
+ * Scheme Parameters (all inclusive of moratorium):
+ *   Micro Finance:  12 quarters, 1 morat, 11 repay, 6.5%
+ *   Term Loan:      28 quarters, 2 morat, 26 repay, 8%
+ *   Education Loan: 48 quarters, variable m, 48-m repay, 6.5%
+ *   AMY (NBFC-MFI): 12 quarters, 1 morat, 11 repay, 15%
  * 
  * Source: NSFDC Official Website (www.nsfdc.nic.in)
- * Interest rate spread: NSFDC charges 2.5% from SCAs/CAs, which charge 6.5% from beneficiaries
- * Source: NSFDC Official Website – Scheme Details Page
+ * Interest Rate Spread:
+ *   Standard:    NSFDC→SCA 2.5%, SCA→Beneficiary 6.5%
+ *   Educational: NSFDC→SCA 2.0%, SCA→Beneficiary 6.0%
  */
 class FinancialService {
     /**
@@ -28,10 +52,16 @@ class FinancialService {
      * @param {number} moratoriumMonths - Moratorium period in months
      * @returns {object} Full calculation result
      */
-    calculateEQI(principal, annualRate, tenureMonths, moratoriumMonths = 0) {
+    calculateEQI(principal, annualRate, tenureMonths, moratoriumMonths = 0, courseDurationYears = 0) {
         const quarterlyRate = annualRate / 100 / 4;
         const totalQuarters = Math.ceil(tenureMonths / 3);
-        const moratoriumQuarters = Math.ceil(moratoriumMonths / 3);
+
+        // Educational Loan: variable moratorium = (Course Duration in years × 4) + 4 quarters (1 year grace)
+        let effectiveMoratoriumMonths = moratoriumMonths;
+        if (courseDurationYears > 0) {
+            effectiveMoratoriumMonths = (courseDurationYears * 12) + 12; // Course period + 1 year
+        }
+        const moratoriumQuarters = Math.ceil(effectiveMoratoriumMonths / 3);
         const repaymentQuarters = totalQuarters - moratoriumQuarters;
 
         if (repaymentQuarters <= 0) {
@@ -124,7 +154,7 @@ class FinancialService {
             moratoriumQuarters,
             repaymentQuarters,
             effectiveTenure: repaymentQuarters * 3, // in months for backward compat
-            moratoriumMonths,
+            moratoriumMonths: effectiveMoratoriumMonths, // actual moratorium used (may differ from input for education loans)
             totalMonths: schedule.length * 3,
             quarterlySchedule: schedule,
             yearlySummary,

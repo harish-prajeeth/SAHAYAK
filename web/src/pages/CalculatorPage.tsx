@@ -13,9 +13,10 @@ export default function CalculatorPage() {
     interestRate: '8.0',
     tenureMonths: '36',
     moratoriumMonths: '3',
+    courseDurationYears: '0',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -23,11 +24,13 @@ export default function CalculatorPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      const courseYears = Number(form.courseDurationYears);
       const res = await calculatorAPI.calculate({
         principal: Number(form.principal),
         interestRate: Number(form.interestRate),
         tenureMonths: Number(form.tenureMonths),
-        moratoriumMonths: Number(form.moratoriumMonths) || 0,
+        moratoriumMonths: courseYears > 0 ? 0 : (Number(form.moratoriumMonths) || 0),
+        courseDurationYears: courseYears,
       });
       setResult(res.calculation);
     } catch (err) {
@@ -36,6 +39,10 @@ export default function CalculatorPage() {
       setLoading(false);
     }
   };
+
+  const isEducationLoan = Number(form.courseDurationYears) > 0;
+  const computedMoratoriumMonths = isEducationLoan ? (Number(form.courseDurationYears) * 12) + 12 : Number(form.moratoriumMonths);
+  const computedMoratQuarters = Math.ceil(computedMoratoriumMonths / 3);
 
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -47,12 +54,12 @@ export default function CalculatorPage() {
   const presets = [
     { label: 'Micro Finance (₹1.1L, 6.5%, 3yr, 3mo moratorium)', principal: '110000', rate: '6.5', tenure: '36', moratorium: '3' },
     { label: 'Term Loan (₹3L, 8%, 7yr, 6mo moratorium)', principal: '300000', rate: '8.0', tenure: '84', moratorium: '6' },
-    { label: 'Educational Loan (₹10L, 6.5%, 12yr, 12mo moratorium)', principal: '1000000', rate: '6.5', tenure: '144', moratorium: '12' },
-    { label: 'Example (₹1L, 8%, 3yr, 1qr moratorium)', principal: '100000', rate: '8.0', tenure: '36', moratorium: '3' },
+    { label: 'Educational Loan (₹10L, 6.5%, 12yr, 2yr course)', principal: '1000000', rate: '6.5', tenure: '144', moratorium: '0', courseDuration: '2' },
+    { label: 'Example (₹1L, 8%, 3yr, 1qr moratorium)', principal: '100000', rate: '8.0', tenure: '36', moratorium: '3', courseDuration: '0' },
   ];
 
   const applyPreset = (p: typeof presets[0]) => {
-    setForm({ principal: p.principal, interestRate: p.rate, tenureMonths: p.tenure, moratoriumMonths: p.moratorium });
+    setForm({ principal: p.principal, interestRate: p.rate, tenureMonths: p.tenure, moratoriumMonths: p.moratorium, courseDurationYears: p.courseDuration || '0' });
   };
 
   return (
@@ -99,14 +106,32 @@ export default function CalculatorPage() {
               <input name="tenureMonths" type="number" value={form.tenureMonths} onChange={handleChange} className="input-field" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Moratorium Period (months)</label>
-              <input name="moratoriumMonths" type="number" value={form.moratoriumMonths} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-surface-700 mb-1">Course Duration (Education Loans only)</label>
+              <select name="courseDurationYears" value={form.courseDurationYears} onChange={handleChange} className="input-field">
+                <option value="0">Not an education loan</option>
+                <option value="1">1 year course</option>
+                <option value="2">2 year course</option>
+                <option value="3">3 year course</option>
+                <option value="4">4 year course (e.g., Engineering)</option>
+                <option value="5">5 year course (e.g., Medicine)</option>
+              </select>
               <p className="text-xs text-surface-400 mt-1">
-                {Number(form.moratoriumMonths) > 0
-                  ? `${Math.ceil(Number(form.moratoriumMonths) / 3)} quarter(s) — interest capitalizes during this period`
-                  : 'No moratorium — payments start immediately'}
+                {isEducationLoan
+                  ? `Moratorium = Course (${form.courseDurationYears}yr) + 1yr grace = ${computedMoratQuarters} quarters (${computedMoratoriumMonths} months)`
+                  : 'Select course duration for variable moratorium calculation'}
               </p>
             </div>
+            {!isEducationLoan && (
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-1">Moratorium Period (months)</label>
+                <input name="moratoriumMonths" type="number" value={form.moratoriumMonths} onChange={handleChange} className="input-field" />
+                <p className="text-xs text-surface-400 mt-1">
+                  {Number(form.moratoriumMonths) > 0
+                    ? `${Math.ceil(Number(form.moratoriumMonths) / 3)} quarter(s) — interest capitalizes during this period`
+                    : 'No moratorium — payments start immediately'}
+                </p>
+              </div>
+            )}
             <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">
               {loading ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" /> : <><Calculator className="w-5 h-5" /> Calculate EQI</>}
             </button>

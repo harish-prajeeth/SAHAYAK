@@ -14,8 +14,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   final _tenureController = TextEditingController(text: '36');
   final _moratoriumController = TextEditingController(text: '3');
 
+  int _courseDurationYears = 0;
   Map<String, dynamic>? _result;
   bool _isLoading = false;
+
+  bool get _isEducationLoan => _courseDurationYears > 0;
+  int get _computedMoratoriumMonths => _isEducationLoan ? (_courseDurationYears * 12) + 12 : int.tryParse(_moratoriumController.text) ?? 0;
+  int get _computedMoratQuarters => (_computedMoratoriumMonths / 3).ceil();
 
   @override
   void dispose() {
@@ -34,7 +39,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         'principal': double.parse(_principalController.text),
         'interestRate': double.parse(_rateController.text),
         'tenureMonths': int.parse(_tenureController.text),
-        'moratoriumMonths': int.parse(_moratoriumController.text),
+        'moratoriumMonths': _isEducationLoan ? 0 : int.parse(_moratoriumController.text),
+        'courseDurationYears': _courseDurationYears,
       });
       setState(() => _result = result['calculation']);
     } catch (e) {
@@ -44,12 +50,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
-  void _applyPreset(String principal, String rate, String tenure, String moratorium) {
+  void _applyPreset(String principal, String rate, String tenure, String moratorium, [int courseDuration = 0]) {
     setState(() {
       _principalController.text = principal;
       _rateController.text = rate;
       _tenureController.text = tenure;
       _moratoriumController.text = moratorium;
+      _courseDurationYears = courseDuration;
     });
   }
 
@@ -104,7 +111,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 children: [
                   _PresetChip(label: 'Micro Finance', onTap: () => _applyPreset('110000', '6.5', '36', '3')),
                   _PresetChip(label: 'Term Loan', onTap: () => _applyPreset('300000', '8.0', '84', '6')),
-                  _PresetChip(label: 'Education Loan', onTap: () => _applyPreset('1000000', '6.5', '144', '12')),
+                  _PresetChip(label: 'Education (2yr)', onTap: () => _applyPreset('1000000', '6.5', '144', '0', 2)),
                   _PresetChip(label: 'Example (₹1L)', onTap: () => _applyPreset('100000', '8.0', '36', '3')),
                 ],
               ),
@@ -133,6 +140,33 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 validator: (v) => (v == null || double.tryParse(v) == null) ? 'Enter valid rate' : null,
               ),
               const SizedBox(height: 12),
+              // Course Duration (for Educational Loans)
+              DropdownButtonFormField<int>
+                value: _courseDurationYears,
+                decoration: const InputDecoration(
+                  labelText: 'Course Duration (Education Loans only)',
+                  prefixIcon: Icon(Icons.school),
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 0, child: Text('Not an education loan')),
+                  DropdownMenuItem(value: 1, child: Text('1 year course')),
+                  DropdownMenuItem(value: 2, child: Text('2 year course')),
+                  DropdownMenuItem(value: 3, child: Text('3 year course')),
+                  DropdownMenuItem(value: 4, child: Text('4 year course (Engineering)')),
+                  DropdownMenuItem(value: 5, child: Text('5 year course (Medicine)')),
+                ],
+                onChanged: (v) => setState(() => _courseDurationYears = v ?? 0),
+              ),
+              if (_isEducationLoan)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Moratorium = Course (${_courseDurationYears}yr) + 1yr grace = $_computedMoratQuarters quarters ($_computedMoratoriumMonths months)',
+                    style: TextStyle(color: Colors.blue[600], fontSize: 11),
+                  ),
+                ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -147,22 +181,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       validator: (v) => (v == null || int.tryParse(v) == null) ? 'Required' : null,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _moratoriumController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Moratorium (months)',
-                        prefixIcon: const Icon(Icons.pause),
-                        border: const OutlineInputBorder(),
-                        suffixText: _moratoriumController.text.isNotEmpty
-                            ? '${(int.tryParse(_moratoriumController.text) ?? 0) ~/ 3 + ((int.tryParse(_moratoriumController.text) ?? 0) % 3 > 0 ? 1 : 0)}q'
-                            : null,
+                  if (!_isEducationLoan) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _moratoriumController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Moratorium (months)',
+                          prefixIcon: const Icon(Icons.pause),
+                          border: const OutlineInputBorder(),
+                        ),
+                        validator: (v) => (v == null || int.tryParse(v) == null) ? 'Required' : null,
                       ),
-                      validator: (v) => (v == null || int.tryParse(v) == null) ? 'Required' : null,
                     ),
-                  ),
+                  ],
                 ],
               ),
               const SizedBox(height: 20),

@@ -82,7 +82,7 @@ export const analyticsAPI = {
 
 // Calculator
 export const calculatorAPI = {
-  calculate: (params: { principal: number; interestRate: number; tenureMonths: number; moratoriumMonths?: number }) =>
+  calculate: (params: { principal: number; interestRate: number; tenureMonths: number; moratoriumMonths?: number; courseDurationYears?: number }) =>
     request<{ success: boolean; calculation: any }>('/calculate', {
       method: 'POST',
       body: JSON.stringify(params),

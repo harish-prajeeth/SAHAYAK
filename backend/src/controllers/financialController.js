@@ -2,7 +2,7 @@ const financialService = require('../services/financialService');
 
 exports.calculate = (req, res) => {
     try {
-        const { principal, interestRate, tenureMonths, moratoriumMonths } = req.body;
+        const { principal, interestRate, tenureMonths, moratoriumMonths, courseDurationYears } = req.body;
 
         if (!principal || !interestRate || !tenureMonths) {
             return res.status(400).json({
@@ -15,7 +15,8 @@ exports.calculate = (req, res) => {
             principal,
             interestRate,
             tenureMonths,
-            moratoriumMonths || 0
+            moratoriumMonths || 0,
+            courseDurationYears || 0
         );
 
         res.json({ success: true, calculation: result });
