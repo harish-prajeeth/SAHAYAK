@@ -43,9 +43,9 @@ export default function RecommendPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-4xl">
+    <div className="space-y-6 animate-fade-in max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold text-surface-900">Find Your Scheme</h1>
+        <h1 className="text-3xl font-bold text-surface-900 tracking-tight">Find Your <span className="text-gradient">Scheme</span></h1>
         <p className="text-surface-500 mt-1">Enter your project details and get matched with the best scheme</p>
       </div>
 
@@ -95,10 +95,15 @@ export default function RecommendPage() {
         {/* Results */}
         <div className="lg:col-span-3">
           {!result && !loading && (
-            <div className="card-elevated p-12 text-center">
-              <Sparkles className="w-12 h-12 text-surface-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-surface-600">Fill in your details</h3>
-              <p className="text-surface-400 mt-1">We'll match you with the best available scheme</p>
+            <div className="card-elevated p-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-grid-subtle opacity-40 pointer-events-none" />
+              <div className="relative">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-600 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-primary-500/25">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-surface-800">Fill in your details</h3>
+                <p className="text-surface-500 mt-1.5 max-w-sm mx-auto">Our AI engine matches your profile against every scheme parameter — cost, rate, tenure and channel.</p>
+              </div>
             </div>
           )}
 
@@ -113,31 +118,30 @@ export default function RecommendPage() {
           {result && result.primary && (
             <div className="space-y-4 animate-scale-in">
               {/* Best Match */}
-              <div className="card-elevated p-6 border-2 border-primary-200 bg-primary-50/30">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl">⭐</span>
-                  <h3 className="font-bold text-primary-800">Best Match</h3>
-                </div>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-surface-900">{result.primary.scheme}</h2>
-                    <span className="badge-blue mt-1">{result.primary.code}</span>
+              <div className="card-gradient-border card-elevated p-6 relative overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary-500/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="flex items-center justify-between mb-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 ring-1 ring-amber-200">
+                    <span className="text-base">⭐</span>
+                    <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Best Match</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-primary-600">{result.primary.matchScore}</div>
-                    <p className="text-xs text-surface-500">Match Score</p>
+                    <div className="text-3xl font-bold text-gradient">{result.primary.matchScore}</div>
+                    <p className="text-[11px] text-surface-500 uppercase tracking-wider font-medium">Match Score</p>
                   </div>
                 </div>
+                <h2 className="text-2xl font-bold text-surface-900 tracking-tight">{result.primary.scheme}</h2>
+                <span className="badge-blue mt-1.5">{result.primary.code}</span>
 
-                <div className="mt-4 p-4 bg-white rounded-xl border border-primary-100">
-                  <p className="text-sm text-surface-700">{result.primary.rationale}</p>
+                <div className="mt-4 p-4 bg-surface-50 rounded-xl border border-surface-100">
+                  <p className="text-sm text-surface-700 leading-relaxed">{result.primary.rationale}</p>
                   {result.primary.note && <p className="text-sm text-amber-600 mt-2 font-medium">Note: {result.primary.note}</p>}
                 </div>
 
                 <div className="mt-4 flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    <span className="text-surface-600">Eligible</span>
+                    <span className="text-surface-600 font-medium">Eligible</span>
                   </div>
                   <div className="text-surface-300">|</div>
                   <div className="text-surface-600">Approval probability: <strong className="text-emerald-600">{result.primary.approvalProbability}%</strong></div>
@@ -145,24 +149,24 @@ export default function RecommendPage() {
 
                 {result.primary.details && (
                   <div className="mt-4 grid grid-cols-3 gap-3">
-                    <div className="p-3 bg-white rounded-lg border border-surface-100 text-center">
-                      <p className="text-xs text-surface-500">Interest Rate</p>
-                      <p className="font-bold text-surface-900">{result.primary.details.interest_rate}%</p>
+                    <div className="p-3.5 bg-white rounded-xl border border-surface-100 text-center hover:border-primary-200 transition-colors">
+                      <p className="text-[11px] text-surface-500 uppercase tracking-wider">Interest Rate</p>
+                      <p className="font-bold text-surface-900 mt-0.5">{result.primary.details.interest_rate}%</p>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-surface-100 text-center">
-                      <p className="text-xs text-surface-500">Max Tenure</p>
-                      <p className="font-bold text-surface-900">{Math.floor(result.primary.details.max_tenure_months / 12)}yr</p>
+                    <div className="p-3.5 bg-white rounded-xl border border-surface-100 text-center hover:border-primary-200 transition-colors">
+                      <p className="text-[11px] text-surface-500 uppercase tracking-wider">Max Tenure</p>
+                      <p className="font-bold text-surface-900 mt-0.5">{Math.floor(result.primary.details.max_tenure_months / 12)}yr</p>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-surface-100 text-center">
-                      <p className="text-xs text-surface-500">Moratorium</p>
-                      <p className="font-bold text-surface-900">{result.primary.details.moratorium_months}mo</p>
+                    <div className="p-3.5 bg-white rounded-xl border border-surface-100 text-center hover:border-primary-200 transition-colors">
+                      <p className="text-[11px] text-surface-500 uppercase tracking-wider">Moratorium</p>
+                      <p className="font-bold text-surface-900 mt-0.5">{result.primary.details.moratorium_months}mo</p>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 flex gap-3">
+                <div className="mt-5 flex flex-wrap gap-3">
                   <button onClick={() => navigate('/calculator')} className="btn-secondary text-sm flex items-center gap-2">
-                    Calculate EMI <ArrowRight className="w-4 h-4" />
+                    Calculate EQI <ArrowRight className="w-4 h-4" />
                   </button>
                   <button onClick={() => navigate('/partners')} className="btn-primary text-sm flex items-center gap-2">
                     Find Partner <ArrowRight className="w-4 h-4" />
@@ -172,14 +176,14 @@ export default function RecommendPage() {
 
               {/* Alternatives */}
               {result.alternatives.length > 0 && (
-                <div className="card p-4">
+                <div className="card-elevated p-5">
                   <h3 className="font-semibold text-surface-800 mb-3">Alternative Options</h3>
                   <div className="space-y-2">
                     {result.alternatives.map((alt, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-surface-50 rounded-lg">
+                      <div key={i} className="flex items-center justify-between p-3.5 bg-surface-50 rounded-xl hover:bg-primary-50/50 hover:ring-1 hover:ring-primary-100 transition-all cursor-default">
                         <div>
-                          <p className="font-medium text-surface-800">{alt.scheme}</p>
-                          <p className="text-xs text-surface-500">{alt.code} — Rate: {alt.rate}</p>
+                          <p className="font-semibold text-surface-800 text-sm">{alt.scheme}</p>
+                          <p className="text-xs text-surface-500 mt-0.5">{alt.code} — Rate: {alt.rate}</p>
                         </div>
                         <ArrowRight className="w-4 h-4 text-surface-400" />
                       </div>
@@ -192,9 +196,11 @@ export default function RecommendPage() {
 
           {result && result.error && (
             <div className="card-elevated p-8 text-center animate-scale-in">
-              <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-7 h-7 text-red-500" />
+              </div>
               <h3 className="text-lg font-semibold text-red-700">No Match Found</h3>
-              <p className="text-surface-500 mt-2">{result.error}</p>
+              <p className="text-surface-500 mt-2 max-w-sm mx-auto">{result.error}</p>
             </div>
           )}
         </div>

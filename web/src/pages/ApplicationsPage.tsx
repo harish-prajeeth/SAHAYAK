@@ -30,10 +30,13 @@ export default function ApplicationsPage() {
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold text-surface-900">{t('app.title')}</h1>
-        <p className="text-surface-500 mt-1">{t('app.subtitle')}</p>
+    <div className="space-y-6 animate-fade-in max-w-6xl">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-surface-900 tracking-tight">{t('app.title')}</h1>
+          <p className="text-surface-500 mt-1">{t('app.subtitle')}</p>
+        </div>
+        <span className="badge-purple w-fit">{applications.length} total</span>
       </div>
 
       {loading ? (
@@ -60,9 +63,10 @@ export default function ApplicationsPage() {
               <Link
                 key={app.id}
                 to={`/applications/${app.id}`}
-                className="block card p-6 hover:shadow-lg transition-all duration-300 animate-slide-up"
+                className="block card-elevated card-hover p-6 animate-slide-up group relative overflow-hidden"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-500 to-accent-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-surface-900">{app.scheme_name || 'Scheme'}</h3>

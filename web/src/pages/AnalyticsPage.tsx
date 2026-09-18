@@ -66,29 +66,29 @@ export default function AnalyticsPage() {
   }));
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in max-w-7xl">
       <div>
-        <h1 className="text-3xl font-bold text-surface-900">{t('analytics.title')}</h1>
+        <h1 className="text-3xl font-bold text-surface-900 tracking-tight">{t('analytics.title')}</h1>
         <p className="text-surface-500 mt-1">{t('analytics.subtitle')}</p>
       </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: t('analytics.totalUsers'), value: overview.totalUsers, icon: Users, color: 'bg-blue-50 text-blue-600' },
-          { label: t('analytics.totalSchemes'), value: overview.totalSchemes, icon: FileSearch, color: 'bg-emerald-50 text-emerald-600' },
-          { label: t('analytics.totalPartners'), value: overview.totalPartners, icon: MapPin, color: 'bg-purple-50 text-purple-600' },
-          { label: t('analytics.totalApps'), value: overview.totalApplications, icon: FileText, color: 'bg-amber-50 text-amber-600' },
-          { label: t('analytics.approvalRate'), value: `${overview.approvalRate}%`, icon: TrendingUp, color: 'bg-teal-50 text-teal-600' },
+          { label: t('analytics.totalUsers'), value: overview.totalUsers, icon: Users, gradient: 'from-blue-500 to-indigo-600', glow: 'shadow-blue-500/25' },
+          { label: t('analytics.totalSchemes'), value: overview.totalSchemes, icon: FileSearch, gradient: 'from-emerald-500 to-teal-600', glow: 'shadow-emerald-500/25' },
+          { label: t('analytics.totalPartners'), value: overview.totalPartners, icon: MapPin, gradient: 'from-purple-500 to-pink-600', glow: 'shadow-purple-500/25' },
+          { label: t('analytics.totalApps'), value: overview.totalApplications, icon: FileText, gradient: 'from-amber-500 to-orange-600', glow: 'shadow-amber-500/25' },
+          { label: t('analytics.approvalRate'), value: `${overview.approvalRate}%`, icon: TrendingUp, gradient: 'from-teal-500 to-cyan-600', glow: 'shadow-teal-500/25' },
         ].map((stat, i) => (
           <div key={i} className="stat-card animate-slide-up" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${stat.color}`}>
-                <stat.icon className="w-5 h-5" />
+              <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow}`}>
+                <stat.icon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-xs text-surface-500 font-medium">{stat.label}</p>
-                <p className="text-2xl font-bold text-surface-900">{stat.value}</p>
+                <p className="text-[11px] text-surface-500 font-semibold uppercase tracking-wider">{stat.label}</p>
+                <p className="text-2xl font-bold text-surface-900 tracking-tight">{stat.value}</p>
               </div>
             </div>
           </div>
