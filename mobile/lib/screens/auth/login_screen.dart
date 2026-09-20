@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../utils/theme.dart';
+import '../../utils/animations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -82,12 +83,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const SizedBox(height: 24),
 
-                  // ---- Aurora hero ----
-                  _AuroraHero(onLogin: _login, controller: _aadhaarController),
+                  // ---- Aurora hero (living gradient) ----
+                  StaggerIn(
+                    index: 0,
+                    child: _AuroraHero(onLogin: _login, controller: _aadhaarController),
+                  ),
                   const SizedBox(height: 32),
 
                   // ---- Credential card ----
-                  GlassCard(
+                  StaggerIn(
+                    index: 1,
+                    child: GlassCard(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -167,26 +173,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
+                  ),
                   const SizedBox(height: 28),
 
                   // ---- Demo accounts ----
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(color: AppColors.border)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('DEMO ACCOUNTS · ONE-TAP LOGIN',
-                            style: TextStyle(
-                                color: AppColors.textMuted,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1)),
-                      ),
-                      const Expanded(child: Divider(color: AppColors.border)),
-                    ],
+                  StaggerIn(
+                    index: 2,
+                    child: Row(
+                      children: [
+                        const Expanded(child: Divider(color: AppColors.border)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text('DEMO ACCOUNTS · ONE-TAP LOGIN',
+                              style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1)),
+                        ),
+                        const Expanded(child: Divider(color: AppColors.border)),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
-                  ..._demoAccounts.map((acc) => GlassCard(
+                  ..._demoAccounts.map((acc) => StaggerIn(
+                        index: 3 + _demoAccounts.indexOf(acc),
+                        child: GlassCard(
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(12),
                         onTap: () {
@@ -251,7 +263,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                      )),
+                      ),
+                    )),
                   const SizedBox(height: 16),
                   // Trust footer
                   Row(
@@ -287,19 +300,16 @@ class _AuroraHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AuroraCard(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppGradients.aurora,
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.purple.withOpacity(0.35),
-            blurRadius: 30,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(26),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.purple.withOpacity(0.35),
+          blurRadius: 30,
+          offset: const Offset(0, 12),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

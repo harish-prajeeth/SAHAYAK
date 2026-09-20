@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/application_provider.dart';
 import '../../models/application.dart';
 import '../../utils/theme.dart';
+import '../../utils/animations.dart';
 import '../../widgets/common/glass_card.dart';
 import 'application_detail_screen.dart';
 
@@ -55,8 +56,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
             ),
             Expanded(
               child: provider.isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.blue))
+                  ? const SkeletonList(count: 4, itemHeight: 150)
                   : provider.applications.isEmpty
                       ? Center(
                           child: Column(
@@ -83,17 +83,19 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
                           color: AppColors.blue,
                           onRefresh: () => provider.loadApplications(),
                           child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
                             itemCount: provider.applications.length,
                             itemBuilder: (context, index) {
-                              final app = provider.applications[index];
-                              return _ApplicationCard(
-                                application: app,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          ApplicationDetailScreen(application: app)),
+                              final app = provider.applications[index];                              return StaggerIn(
+                                index: index,
+                                child: _ApplicationCard(
+                                  application: app,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    SlideFadeRoute(
+                                        page: ApplicationDetailScreen(
+                                            application: app)),
+                                  ),
                                 ),
                               );
                             },

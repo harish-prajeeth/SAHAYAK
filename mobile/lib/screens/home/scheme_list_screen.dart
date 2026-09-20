@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/scheme_provider.dart';
 import '../../models/scheme.dart';
 import '../../utils/theme.dart';
+import '../../utils/animations.dart';
 import '../../widgets/common/glass_card.dart';
 
 class SchemeListScreen extends StatefulWidget {
@@ -116,19 +117,20 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
             // ---- Scheme list ----
             Expanded(
               child: provider.isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.blue))
+                  ? const SkeletonList(count: 5, itemHeight: 138)
                   : RefreshIndicator(
                       color: AppColors.blue,
                       onRefresh: () => provider.loadSchemes(),
                       child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 110),
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final scheme = filtered[index];
-                          return GlassCard(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            onTap: () => _showSchemeDetails(context, scheme),
+                          return StaggerIn(
+                            index: index,
+                            child: GlassCard(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              onTap: () => _showSchemeDetails(context, scheme),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -202,6 +204,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                                 ),
                               ],
                             ),
+                          ),
                           );
                         },
                       ),

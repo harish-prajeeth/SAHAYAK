@@ -5,6 +5,7 @@ import '../../providers/partner_provider.dart';
 import '../../api/api_service.dart';
 import '../../models/partner.dart';
 import '../../utils/theme.dart';
+import '../../utils/animations.dart';
 import '../../widgets/common/glass_card.dart';
 
 class PartnerLocatorScreen extends StatefulWidget {
@@ -281,8 +282,7 @@ class _PartnerLocatorScreenState extends State<PartnerLocatorScreen> {
             // ---- Partner list ----
             Expanded(
               child: _allPartners.isEmpty && !_showingNearby
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.blue))
+                  ? const SkeletonList(count: 5, itemHeight: 168)
                   : _displayPartners.isEmpty
                       ? Center(
                           child: Column(
@@ -307,11 +307,13 @@ class _PartnerLocatorScreenState extends State<PartnerLocatorScreen> {
                             await _loadAllPartners();
                           },
                           child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                             itemCount: _displayPartners.length,
                             itemBuilder: (context, index) {
                               final partner = _displayPartners[index];
-                              return GlassCard(
+                              return StaggerIn(
+                                index: index,
+                                child: GlassCard(
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,6 +436,7 @@ class _PartnerLocatorScreenState extends State<PartnerLocatorScreen> {
                                     ),
                                   ],
                                 ),
+                              ),
                               );
                             },
                           ),

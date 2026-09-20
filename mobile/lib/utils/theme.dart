@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Surakshit premium dark design tokens.
 /// Mirrors the web design system: deep navy surfaces, aurora gradients,
@@ -73,16 +74,18 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.bg,
+      splashFactory: InkSparkle.splashFactory,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
         foregroundColor: AppColors.textPrimary,
-        titleTextStyle: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-        ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       cardTheme: CardTheme(
@@ -176,16 +179,34 @@ class AppTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.blue),
       refreshIndicatorTheme: const RefreshIndicatorThemeData(color: AppColors.blue),
-      textTheme: const TextTheme(
+      // Inter type scale — the premium typographic foundation.
+      textTheme: GoogleFonts.interTextTheme(const TextTheme(
         headlineSmall: TextStyle(
-            color: AppColors.textPrimary, fontWeight: FontWeight.w700, height: 1.25),
-        titleLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-        titleSmall: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(color: AppColors.textPrimary, height: 1.45),
-        bodyMedium: TextStyle(color: AppColors.textSecondary, height: 1.45),
-        bodySmall: TextStyle(color: AppColors.textMuted, height: 1.4),
-      ),
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+            fontSize: 23,
+            height: 1.22,
+            letterSpacing: -0.5),
+        titleLarge: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: -0.3),
+        titleMedium: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 15),
+        titleSmall: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: 13.5),
+        bodyLarge: TextStyle(
+            color: AppColors.textPrimary, fontSize: 15, height: 1.45),
+        bodyMedium: TextStyle(
+            color: AppColors.textSecondary, fontSize: 13.5, height: 1.45),
+        bodySmall: TextStyle(
+            color: AppColors.textMuted, fontSize: 12, height: 1.4),
+      )),
     );
   }
 }

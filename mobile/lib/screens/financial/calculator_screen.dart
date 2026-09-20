@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../api/api_service.dart';
 import '../../utils/theme.dart';
+import '../../utils/animations.dart';
 import '../../widgets/common/glass_card.dart';
 
 class CalculatorScreen extends StatefulWidget {
@@ -248,9 +249,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 // ---- Results ----
                 if (_result != null) ...[
                   const SizedBox(height: 20),
-                  _buildResultsCard(),
+                  StaggerIn(index: 1, child: _buildResultsCard()),
                 ],
-                const SizedBox(height: 16),
+                const SizedBox(height: 110),
               ],
             ),
           ),

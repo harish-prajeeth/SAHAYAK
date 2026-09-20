@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../utils/theme.dart';
+import '../../utils/animations.dart';
 
 /// Dark glass card — the base container of the Surakshit design language.
+/// When [onTap] is set, it gets a springy press-scale + light haptic.
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -24,8 +26,7 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
+    final core = Container(
       decoration: BoxDecoration(
         color: color ?? AppColors.card,
         borderRadius: borderRadius,
@@ -42,17 +43,20 @@ class GlassCard extends StatelessWidget {
         borderRadius: borderRadius,
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(padding: padding, child: child),
-          ),
+          child: Padding(padding: padding, child: child),
         ),
       ),
+    );
+
+    // Margin sits outside the scale transform so only the card springs.
+    return Container(
+      margin: margin,
+      child: onTap == null ? core : PressableScale(onTap: onTap, child: core),
     );
   }
 }
 
-/// Gradient filled primary button used across screens.
+/// Gradient filled primary button with springy press feedback.
 class GradientButton extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -74,57 +78,49 @@ class GradientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null || loading;
-    return Opacity(
-      opacity: disabled ? 0.6 : 1,
-      child: IgnorePointer(
-        ignoring: disabled,
-        child: Container(
-          height: height,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: AppGradients.of(colors),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: colors.first.withOpacity(0.4),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
+    final button = Container(
+      height: height,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: AppGradients.of(colors),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: disabled
+            ? null
+            : [
+                BoxShadow(
+                  color: colors.first.withOpacity(0.4),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+      ),
+      child: Center(
+        child: loading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(label,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15)),
+                ],
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: onPressed,
-              child: Center(
-                child: loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (icon != null) ...[
-                            Icon(icon, color: Colors.white, size: 18),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(label,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15)),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
+
+    if (disabled) return Opacity(opacity: 0.55, child: button);
+    return PressableScale(onTap: onPressed, pressScale: 0.98, child: button);
   }
 }
 
