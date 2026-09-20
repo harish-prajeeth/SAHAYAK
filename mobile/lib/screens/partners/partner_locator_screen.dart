@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import '../../providers/partner_provider.dart';
 import '../../api/api_service.dart';
 import '../../models/partner.dart';
+import '../../utils/theme.dart';
+import '../../widgets/common/glass_card.dart';
 
 class PartnerLocatorScreen extends StatefulWidget {
   const PartnerLocatorScreen({super.key});
@@ -99,194 +101,378 @@ class _PartnerLocatorScreenState extends State<PartnerLocatorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          // Location header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _currentPosition != null
-                            ? '📍 ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}'
-                            : (_locationError ?? 'Detecting location...'),
-                        style: TextStyle(fontSize: 13, color: _locationError != null ? Colors.orange : null),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.my_location, size: 20),
-                      onPressed: _getCurrentLocation,
-                    ),
-                  ],
-                ),
-
-                // Find Nearby / Show All buttons
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (_currentPosition != null && !_showingNearby)
-                      ElevatedButton.icon(
-                        onPressed: _searchingNearby ? null : _searchNearby,
-                        icon: _searchingNearby
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.near_me, size: 16),
-                        label: const Text('Find Nearby'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          textStyle: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    if (_showingNearby) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text('${_nearbyPartners.length} nearby',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green[700])),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: _showAllPartners,
-                        child: const Text('Show All', style: TextStyle(fontSize: 12)),
-                      ),
-                    ],
-                    if (!_showingNearby)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text('${_allPartners.length} partners total',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Scheme filter (only shown when nearby)
-          if (_showingNearby)
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF101836), AppColors.bg],
+          stops: [0.0, 0.3],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // ---- Header ----
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Scheme: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Expanded(
-                    child: DropdownButton<String>(
-                      value: _selectedScheme,
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      items: _schemeOptions.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
-                      onChanged: (v) {
-                        if (v != null) {
-                          setState(() => _selectedScheme = v);
-                          _searchNearby();
-                        }
-                      },
-                    ),
+                  const Text('Partners',
+                      style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 2),
+                  Text(
+                    _showingNearby
+                        ? '${_nearbyPartners.length} partners near you'
+                        : '${_allPartners.length} partners across India',
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                 ],
               ),
             ),
 
-          // Partner list
-          Expanded(
-            child: _allPartners.isEmpty && !_showingNearby
-                ? const Center(child: CircularProgressIndicator())
-                : _displayPartners.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.location_off, size: 48, color: Colors.grey[300]),
-                            const SizedBox(height: 12),
-                            Text('No partners found nearby', style: TextStyle(color: Colors.grey[600])),
-                            const SizedBox(height: 8),
-                            TextButton(onPressed: _showAllPartners, child: const Text('Show all partners')),
-                          ],
+            // ---- Location card ----
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              child: GlassCard(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const GradientIconBadge(
+                            icon: Icons.my_location_rounded,
+                            colors: AppGradients.blue,
+                            size: 34),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _locationLoading
+                              ? const Row(
+                                  children: [
+                                    SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2, color: AppColors.blue)),
+                                    SizedBox(width: 8),
+                                    Text('Detecting location...',
+                                        style: TextStyle(
+                                            fontSize: 12.5,
+                                            color: AppColors.textSecondary)),
+                                  ],
+                                )
+                              : Text(
+                                  _currentPosition != null
+                                      ? '📍 ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}'
+                                      : (_locationError ?? 'Location unavailable'),
+                                  style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: _locationError != null
+                                          ? AppColors.orange
+                                          : AppColors.textPrimary),
+                                ),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _displayPartners.length,
-                        itemBuilder: (context, index) {
-                          final partner = _displayPartners[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(partner.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            Text(partner.typeLabel, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                          ],
-                                        ),
-                                      ),
-                                      if (partner.distance != null && partner.distance! > 0)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.primaryContainer,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(partner.distanceFormatted, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                                        ),
-                                    ],
-                                  ),
-                                  if (partner.address != null) ...[
-                                    const SizedBox(height: 8),
-                                    Row(children: [Icon(Icons.place, size: 14, color: Colors.grey[500]), const SizedBox(width: 4), Expanded(child: Text(partner.address!, style: const TextStyle(fontSize: 12)))]),
-                                  ],
-                                  if (partner.phone != null) ...[
-                                    const SizedBox(height: 4),
-                                    Row(children: [Icon(Icons.phone, size: 14, color: Colors.grey[500]), const SizedBox(width: 4), Text(partner.phone!, style: const TextStyle(fontSize: 12))]),
-                                  ],
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      _StatusBadge(label: 'Fund: ${partner.fundUtilization.toStringAsFixed(0)}%', good: partner.fundUtilization >= 80),
-                                      const SizedBox(width: 8),
-                                      _StatusBadge(label: 'NPA: ${partner.npaRate.toStringAsFixed(1)}%', good: partner.npaRate < 10),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: partner.isEligible ? Colors.green[50] : Colors.red[50],
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          partner.isEligible ? '✅ Eligible' : '❌ Not Eligible',
-                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: partner.isEligible ? Colors.green[700] : Colors.red[700]),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                        IconButton(
+                          icon: const Icon(Icons.refresh_rounded,
+                              size: 20, color: AppColors.textSecondary),
+                          onPressed: _getCurrentLocation,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        if (_currentPosition != null && !_showingNearby)
+                          Expanded(
+                            child: GradientButton(
+                              label: 'Find Nearby',
+                              icon: Icons.near_me_rounded,
+                              height: 40,
+                              colors: AppGradients.blue,
+                              loading: _searchingNearby,
+                              onPressed: _searchingNearby ? null : _searchNearby,
                             ),
-                          );
-                        },
+                          ),
+                        if (_showingNearby) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.green.withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: AppColors.green.withOpacity(0.35)),
+                            ),
+                            child: Text('${_nearbyPartners.length} nearby',
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.green)),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: _showAllPartners,
+                            child: const Text('Show All',
+                                style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.blue)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ---- Scheme filter (nearby mode) ----
+            if (_showingNearby)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Text('Scheme: ',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                            fontSize: 13)),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedScheme,
+                            isExpanded: true,
+                            dropdownColor: AppColors.surface,
+                            style: const TextStyle(
+                                color: AppColors.textPrimary, fontSize: 13),
+                            icon: const Icon(Icons.expand_more_rounded,
+                                color: AppColors.textMuted),
+                            items: _schemeOptions.entries
+                                .map((e) => DropdownMenuItem(
+                                    value: e.key, child: Text(e.value)))
+                                .toList(),
+                            onChanged: (v) {
+                              if (v != null) {
+                                setState(() => _selectedScheme = v);
+                                _searchNearby();
+                              }
+                            },
+                          ),
+                        ),
                       ),
-          ),
-        ],
+                    ),
+                  ],
+                ),
+              ),
+
+            // ---- Partner list ----
+            Expanded(
+              child: _allPartners.isEmpty && !_showingNearby
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.blue))
+                  : _displayPartners.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.location_off_rounded,
+                                  size: 48, color: AppColors.textMuted.withOpacity(0.5)),
+                              const SizedBox(height: 12),
+                              const Text('No partners found nearby',
+                                  style: TextStyle(color: AppColors.textSecondary)),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                  onPressed: _showAllPartners,
+                                  child: const Text('Show all partners',
+                                      style: TextStyle(color: AppColors.blue))),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          color: AppColors.blue,
+                          onRefresh: () async {
+                            await _loadAllPartners();
+                          },
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                            itemCount: _displayPartners.length,
+                            itemBuilder: (context, index) {
+                              final partner = _displayPartners[index];
+                              return GlassCard(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        GradientIconBadge(
+                                            icon: _typeIcon(partner.type),
+                                            colors: _typeColors(partner.type),
+                                            size: 40),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(partner.name,
+                                                  style: const TextStyle(
+                                                      color: AppColors.textPrimary,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontSize: 14.5),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis),
+                                              Text(partner.typeLabel,
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: AppColors.textMuted)),
+                                            ],
+                                          ),
+                                        ),
+                                        if (partner.distance != null &&
+                                            partner.distance! > 0)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 9, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              gradient: AppGradients
+                                                  .of(AppGradients.blue),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(partner.distanceFormatted,
+                                                style: const TextStyle(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: Colors.white)),
+                                          ),
+                                      ],
+                                    ),
+                                    if (partner.address != null) ...[
+                                      const SizedBox(height: 10),
+                                      Row(children: [
+                                        const Icon(Icons.place_rounded,
+                                            size: 14, color: AppColors.textMuted),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                            child: Text(partner.address!,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.textSecondary))),
+                                      ]),
+                                    ],
+                                    if (partner.phone != null) ...[
+                                      const SizedBox(height: 5),
+                                      Row(children: [
+                                        const Icon(Icons.phone_rounded,
+                                            size: 14, color: AppColors.textMuted),
+                                        const SizedBox(width: 6),
+                                        Text(partner.phone!,
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.textSecondary)),
+                                      ]),
+                                    ],
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: [
+                                        _StatusBadge(
+                                            label:
+                                                'Fund: ${partner.fundUtilization.toStringAsFixed(0)}%',
+                                            good:
+                                                partner.fundUtilization >= 80),
+                                        _StatusBadge(
+                                            label:
+                                                'NPA: ${partner.npaRate.toStringAsFixed(1)}%',
+                                            good: partner.npaRate < 10),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: partner.isEligible
+                                                ? AppColors.green
+                                                    .withOpacity(0.12)
+                                                : AppColors.red
+                                                    .withOpacity(0.12),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: partner.isEligible
+                                                    ? AppColors.green
+                                                        .withOpacity(0.35)
+                                                    : AppColors.red
+                                                        .withOpacity(0.35)),
+                                          ),
+                                          child: Text(
+                                            partner.isEligible
+                                                ? '✅ Eligible'
+                                                : '❌ Not Eligible',
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: partner.isEligible
+                                                    ? AppColors.green
+                                                    : AppColors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  List<Color> _typeColors(String? type) {
+    switch (type) {
+      case 'SCA':
+        return AppGradients.blue;
+      case 'PSB':
+        return AppGradients.green;
+      case 'RRB':
+        return AppGradients.orange;
+      case 'NBFC-MFI':
+        return AppGradients.purple;
+      default:
+        return AppGradients.cyan;
+    }
+  }
+
+  IconData _typeIcon(String? type) {
+    switch (type) {
+      case 'SCA':
+        return Icons.account_balance_rounded;
+      case 'PSB':
+        return Icons.savings_rounded;
+      case 'RRB':
+        return Icons.agriculture_rounded;
+      case 'NBFC-MFI':
+        return Icons.storefront_rounded;
+      default:
+        return Icons.business_center_rounded;
+    }
   }
 }
 
@@ -297,12 +483,22 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: good ? Colors.green[50] : Colors.red[50],
-        borderRadius: BorderRadius.circular(6),
+        color: good
+            ? AppColors.green.withOpacity(0.12)
+            : AppColors.orange.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+            color: good
+                ? AppColors.green.withOpacity(0.35)
+                : AppColors.orange.withOpacity(0.35)),
       ),
-      child: Text(label, style: TextStyle(fontSize: 11, color: good ? Colors.green[700] : Colors.red[700])),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: good ? AppColors.green : AppColors.orange)),
     );
   }
 }

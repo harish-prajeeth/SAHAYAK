@@ -5,6 +5,8 @@ import '../../providers/scheme_provider.dart';
 import '../../providers/partner_provider.dart';
 import '../../providers/application_provider.dart';
 import '../../utils/i18n.dart';
+import '../../utils/theme.dart';
+import '../../widgets/common/glass_card.dart';
 import '../auth/login_screen.dart';
 import 'scheme_list_screen.dart';
 import '../financial/calculator_screen.dart';
@@ -46,11 +48,11 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.home), label: lang.t('nav.home')),
-          NavigationDestination(icon: const Icon(Icons.category), label: lang.t('nav.schemes')),
-          NavigationDestination(icon: const Icon(Icons.location_on), label: lang.t('nav.partners')),
-          NavigationDestination(icon: const Icon(Icons.description), label: lang.t('nav.applications')),
-          NavigationDestination(icon: const Icon(Icons.calculate), label: lang.t('nav.calculator')),
+          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home_rounded), label: lang.t('nav.home')),
+          NavigationDestination(icon: const Icon(Icons.category_outlined), selectedIcon: const Icon(Icons.category_rounded), label: lang.t('nav.schemes')),
+          NavigationDestination(icon: const Icon(Icons.location_on_outlined), selectedIcon: const Icon(Icons.location_on_rounded), label: lang.t('nav.partners')),
+          NavigationDestination(icon: const Icon(Icons.description_outlined), selectedIcon: const Icon(Icons.description_rounded), label: lang.t('nav.applications')),
+          NavigationDestination(icon: const Icon(Icons.calculate_outlined), selectedIcon: const Icon(Icons.calculate_rounded), label: lang.t('nav.calculator')),
         ],
       ),
       drawer: _buildDrawer(context, lang),
@@ -64,31 +66,53 @@ class _HomeScreenState extends State<HomeScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            // User info
+            // ---- Gradient user header ----
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+              margin: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: AppGradients.aurora,
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.purple.withOpacity(0.25),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    child: Text(
-                      (auth.user?.name ?? 'U')[0],
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        (auth.user?.name ?? 'U')[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 19,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(auth.user?.name ?? 'User',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16)),
                   Text(auth.user?.email ?? '',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
@@ -96,28 +120,31 @@ class _HomeScreenState extends State<HomeScreen> {
             // Navigation items
             Expanded(
               child: ListView(
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 children: [
                   _DrawerItem(
-                    icon: Icons.analytics,
+                    icon: Icons.analytics_outlined,
                     label: lang.t('nav.analytics'),
+                    colors: AppGradients.cyan,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()));
                     },
                   ),
                   _DrawerItem(
-                    icon: Icons.compare_arrows,
+                    icon: Icons.compare_arrows_rounded,
                     label: lang.t('nav.compare'),
+                    colors: AppGradients.purple,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CompareScreen()));
                     },
                   ),
-                  const Divider(),
+                  const Divider(height: 24),
                   _DrawerItem(
-                    icon: Icons.logout,
+                    icon: Icons.logout_rounded,
                     label: lang.t('nav.logout'),
+                    colors: AppGradients.red,
                     onTap: () async {
                       await auth.logout();
                       if (context.mounted) {
@@ -137,7 +164,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Language / மொழி', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                  const Text('Language / மொழி',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
@@ -146,20 +177,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       final isActive = lang.language == option.code;
                       return GestureDetector(
                         onTap: () => lang.setLanguage(option.code),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isActive
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(8),
+                            gradient: isActive
+                                ? AppGradients.of(AppGradients.blue)
+                                : null,
+                            color:
+                                isActive ? null : AppColors.surface,
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(
+                                color: isActive
+                                    ? Colors.transparent
+                                    : AppColors.border),
                           ),
                           child: Text(
                             '${option.flag} ${option.native}',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                              color: isActive ? Colors.white : Theme.of(context).colorScheme.primary,
+                              fontWeight: isActive
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: isActive
+                                  ? Colors.white
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -180,21 +223,49 @@ class _HomeScreenState extends State<HomeScreen> {
 class _DrawerItem extends StatelessWidget {
   final IconData icon;
   final String label;
+  final List<Color> colors;
   final VoidCallback onTap;
 
-  const _DrawerItem({required this.icon, required this.label, required this.onTap});
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.colors,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, size: 22),
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      onTap: onTap,
-      dense: true,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                GradientIconBadge(icon: icon, colors: colors, size: 34),
+                const SizedBox(width: 12),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary)),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD TAB
+// ═══════════════════════════════════════════════════════════════
 class _DashboardTab extends StatelessWidget {
   const _DashboardTab();
 
@@ -209,234 +280,426 @@ class _DashboardTab extends StatelessWidget {
     if (schemes.schemes.isEmpty) schemes.loadSchemes();
     if (apps.applications.isEmpty) apps.loadApplications();
 
-    return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: () async {
-          await schemes.loadSchemes();
-          await apps.loadApplications();
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Hamburger menu hint
-            Row(
-              children: [
-                Builder(
-                  builder: (ctx) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(ctx).openDrawer(),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF101836), AppColors.bg],
+          stops: [0.0, 0.4],
+        ),
+      ),
+      child: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await schemes.loadSchemes();
+            await apps.loadApplications();
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // ---- Top bar ----
+              Row(
+                children: [
+                  Builder(
+                    builder: (ctx) => _MenuButton(
+                        onTap: () => Scaffold.of(ctx).openDrawer()),
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    lang.t('dashboard.greeting', params: {'name': auth.user?.name ?? 'User'}),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          lang.t('dashboard.greeting',
+                              params: {'name': auth.user?.name ?? 'User'}),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontSize: 20),
+                        ),
+                        Text(
+                          lang.t('dashboard.subtitle'),
+                          style: const TextStyle(
+                              color: AppColors.textMuted, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.only(left: 48),
-              child: Text(
-                lang.t('dashboard.subtitle'),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-            // Stats cards
-            Row(
-              children: [
-                _StatCard(
-                  title: lang.t('dashboard.active_schemes'),
-                  value: '${schemes.schemes.length}',
-                  icon: Icons.category,
-                  color: Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  title: lang.t('dashboard.my_applications'),
-                  value: '${apps.applications.length}',
-                  icon: Icons.description,
-                  color: Colors.green,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+              // ---- Aurora hero banner ----
+              _HeroBanner(onFindScheme: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SchemeListScreen()));
+              }),
+              const SizedBox(height: 20),
 
-            // Quick Actions
-            Text(lang.t('dashboard.quick_actions'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.5,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              children: [
-                _QuickAction(
-                  title: lang.t('action.get_matched'),
-                  subtitle: lang.t('action.find_best_scheme'),
-                  icon: Icons.auto_awesome,
-                  color: const Color(0xFF6366F1),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SchemeListScreen())),
-                ),
-                _QuickAction(
-                  title: lang.t('action.calculator'),
-                  subtitle: lang.t('action.emi_amortization'),
-                  icon: Icons.calculate,
-                  color: const Color(0xFF10B981),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalculatorScreen())),
-                ),
-                _QuickAction(
-                  title: lang.t('action.find_partners'),
-                  subtitle: lang.t('action.nearby_locations'),
-                  icon: Icons.location_on,
-                  color: const Color(0xFFF59E0B),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PartnerLocatorScreen())),
-                ),
-                _QuickAction(
-                  title: lang.t('action.my_applications'),
-                  subtitle: lang.t('action.track_status'),
-                  icon: Icons.track_changes,
-                  color: const Color(0xFFEF4444),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicationsScreen())),
-                ),
-                _QuickAction(
-                  title: lang.t('action.compare_schemes'),
-                  subtitle: lang.t('action.side_by_side'),
-                  icon: Icons.compare_arrows,
-                  color: const Color(0xFF8B5CF6),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompareScreen())),
-                ),
-                _QuickAction(
-                  title: lang.t('nav.analytics'),
-                  subtitle: 'Dashboard',
-                  icon: Icons.analytics,
-                  color: const Color(0xFF0EA5E9),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen())),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Recent applications
-            if (apps.applications.isNotEmpty) ...[
-              Text(lang.t('recent.applications'),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              ...apps.applications.take(3).map((app) => Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: _statusColor(app.status).withOpacity(0.1),
-                    child: Icon(_statusIcon(app.status), color: _statusColor(app.status), size: 20),
+              // ---- Stat tiles ----
+              Row(
+                children: [
+                  _StatTile(
+                    title: lang.t('dashboard.active_schemes'),
+                    value: '${schemes.schemes.length}',
+                    icon: Icons.category_rounded,
+                    colors: AppGradients.blue,
                   ),
-                  title: Text(app.schemeName ?? 'Scheme #${app.schemeId}'),
-                  subtitle: Text(app.statusLabel),
-                  trailing: const Icon(Icons.chevron_right),
-                ),
-              )),
-            ],
+                  const SizedBox(width: 12),
+                  _StatTile(
+                    title: lang.t('dashboard.my_applications'),
+                    value: '${apps.applications.length}',
+                    icon: Icons.description_rounded,
+                    colors: AppGradients.green,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
 
-            // Logout
-            const SizedBox(height: 24),
-            OutlinedButton.icon(
-              onPressed: () async {
-                await auth.logout();
-                if (context.mounted) {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
-                }
-              },
-              icon: const Icon(Icons.logout),
-              label: Text(lang.t('nav.logout')),
-            ),
-          ],
+              // ---- Quick Actions ----
+              SectionHeader(title: lang.t('dashboard.quick_actions')),
+              const SizedBox(height: 12),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.45,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                children: [
+                  _QuickAction(
+                    title: lang.t('action.get_matched'),
+                    subtitle: lang.t('action.find_best_scheme'),
+                    icon: Icons.auto_awesome_rounded,
+                    colors: AppGradients.indigo,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SchemeListScreen())),
+                  ),
+                  _QuickAction(
+                    title: lang.t('action.calculator'),
+                    subtitle: lang.t('action.emi_amortization'),
+                    icon: Icons.calculate_rounded,
+                    colors: AppGradients.green,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalculatorScreen())),
+                  ),
+                  _QuickAction(
+                    title: lang.t('action.find_partners'),
+                    subtitle: lang.t('action.nearby_locations'),
+                    icon: Icons.location_on_rounded,
+                    colors: AppGradients.orange,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PartnerLocatorScreen())),
+                  ),
+                  _QuickAction(
+                    title: lang.t('action.my_applications'),
+                    subtitle: lang.t('action.track_status'),
+                    icon: Icons.track_changes_rounded,
+                    colors: AppGradients.red,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicationsScreen())),
+                  ),
+                  _QuickAction(
+                    title: lang.t('action.compare_schemes'),
+                    subtitle: lang.t('action.side_by_side'),
+                    icon: Icons.compare_arrows_rounded,
+                    colors: AppGradients.purple,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompareScreen())),
+                  ),
+                  _QuickAction(
+                    title: lang.t('nav.analytics'),
+                    subtitle: 'Dashboard',
+                    icon: Icons.analytics_rounded,
+                    colors: AppGradients.cyan,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen())),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // ---- Recent applications ----
+              if (apps.applications.isNotEmpty) ...[
+                SectionHeader(
+                    title: lang.t('recent.applications'),
+                    trailing: TextButton(
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ApplicationsScreen())),
+                      child: const Text('View All',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.blue)),
+                    )),
+                const SizedBox(height: 12),
+                ...apps.applications.take(3).map((app) => GlassCard(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ApplicationsScreen())),
+                      child: Row(
+                        children: [
+                          GradientIconBadge(
+                              icon: _statusIcon(app.status),
+                              colors: _statusColors(app.status),
+                              size: 38),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(app.schemeName ?? 'Scheme #${app.schemeId}',
+                                    style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13.5),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                const SizedBox(height: 2),
+                                Text(app.statusLabel,
+                                    style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded,
+                              size: 18, color: AppColors.textMuted),
+                        ],
+                      ),
+                    )),
+              ],
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Color _statusColor(String status) {
+  List<Color> _statusColors(String status) {
     switch (status) {
-      case 'approved': return Colors.green;
-      case 'rejected': return Colors.red;
-      case 'submitted': return Colors.blue;
-      case 'under_review': return Colors.orange;
-      case 'disbursed': return Colors.purple;
-      default: return Colors.grey;
+      case 'approved':
+        return AppGradients.green;
+      case 'rejected':
+        return AppGradients.red;
+      case 'submitted':
+        return AppGradients.blue;
+      case 'under_review':
+        return AppGradients.orange;
+      case 'disbursed':
+        return AppGradients.purple;
+      default:
+        return AppGradients.cyan;
     }
   }
 
   IconData _statusIcon(String status) {
     switch (status) {
-      case 'approved': return Icons.check_circle;
-      case 'rejected': return Icons.cancel;
-      case 'submitted': return Icons.send;
-      case 'under_review': return Icons.pending;
-      case 'disbursed': return Icons.account_balance;
-      default: return Icons.drafts;
+      case 'approved':
+        return Icons.check_circle_rounded;
+      case 'rejected':
+        return Icons.cancel_rounded;
+      case 'submitted':
+        return Icons.send_rounded;
+      case 'under_review':
+        return Icons.pending_rounded;
+      case 'disbursed':
+        return Icons.account_balance_rounded;
+      default:
+        return Icons.drafts_rounded;
     }
   }
 }
 
-class _StatCard extends StatelessWidget {
+/// Round glass menu button.
+class _MenuButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _MenuButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.menu_rounded,
+            color: AppColors.textPrimary, size: 20),
+        onPressed: onTap,
+      ),
+    );
+  }
+}
+
+/// Aurora gradient hero banner with "Find My Scheme" CTA.
+class _HeroBanner extends StatelessWidget {
+  final VoidCallback onFindScheme;
+  const _HeroBanner({required this.onFindScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: AppGradients.aurora,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.royal.withOpacity(0.3),
+            blurRadius: 26,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.25)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.auto_awesome_rounded, size: 13, color: Colors.white),
+                SizedBox(width: 5),
+                Text('AI POWERED',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Find the right scheme for your business',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                height: 1.25),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Smart matching with approval probability & EQI calculator',
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onFindScheme,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.rocket_launch_rounded,
+                        size: 16, color: AppColors.royal),
+                    SizedBox(width: 8),
+                    Text('Find My Scheme',
+                        style: TextStyle(
+                            color: AppColors.royal,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Stat tile with gradient icon badge.
+class _StatTile extends StatelessWidget {
   final String title, value;
   final IconData icon;
-  final Color color;
+  final List<Color> colors;
 
-  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
+  const _StatTile({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.colors,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 24),
-              const SizedBox(height: 8),
-              Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-              Text(title, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600])),
-            ],
-          ),
+      child: GlassCard(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GradientIconBadge(icon: icon, colors: colors, size: 38),
+            const SizedBox(height: 10),
+            Text(value,
+                style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800)),
+            Text(title,
+                style: const TextStyle(
+                    color: AppColors.textMuted, fontSize: 11.5)),
+          ],
         ),
       ),
     );
   }
 }
 
+/// Quick action glass tile with gradient badge.
 class _QuickAction extends StatelessWidget {
   final String title, subtitle;
   final IconData icon;
-  final Color color;
+  final List<Color> colors;
   final VoidCallback onTap;
 
-  const _QuickAction({required this.title, required this.subtitle, required this.icon, required this.color, required this.onTap});
+  const _QuickAction({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.colors,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(height: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Text(subtitle, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-            ],
-          ),
-        ),
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GradientIconBadge(icon: icon, colors: colors, size: 36),
+          const SizedBox(height: 10),
+          Text(title,
+              style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.5),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          Text(subtitle,
+              style:
+                  const TextStyle(color: AppColors.textMuted, fontSize: 10.5),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+        ],
       ),
     );
   }

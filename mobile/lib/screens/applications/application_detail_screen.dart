@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/application_provider.dart';
 import '../../models/application.dart';
+import '../../utils/theme.dart';
+import '../../widgets/common/glass_card.dart';
 
 class ApplicationDetailScreen extends StatefulWidget {
   final Application application;
@@ -31,41 +33,57 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _statusColor(app.status).withOpacity(0.1),
+              color: _statusColor(app.status).withOpacity(0.14),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _statusColor(app.status).withOpacity(0.4)),
             ),
-            child: Text(app.statusLabel, style: TextStyle(fontWeight: FontWeight.bold, color: _statusColor(app.status))),
+            child: Text(app.statusLabel,
+                style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: _statusColor(app.status))),
           ),
         ],
       ),
       body: RefreshIndicator(
+        color: AppColors.blue,
         onRefresh: () => provider.getApplicationStatus(app.id),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // Application info card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Application Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 12),
-                    _InfoRow(label: 'Scheme', value: app.schemeName ?? 'N/A'),
-                    _InfoRow(label: 'Project Type', value: app.projectType ?? 'N/A'),
-                    _InfoRow(label: 'Project Cost', value: app.projectCostFormatted ?? 'N/A'),
-                    _InfoRow(label: 'Loan Amount', value: app.loanAmountFormatted ?? 'N/A'),
-                    _InfoRow(label: 'Partner', value: app.partnerName ?? 'N/A'),
-                    _InfoRow(label: 'Created', value: app.createdAt.toString().substring(0, 16)),
-                  ],
-                ),
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      GradientIconBadge(
+                          icon: Icons.description_rounded,
+                          colors: AppGradients.blue,
+                          size: 38),
+                      const SizedBox(width: 12),
+                      const Text('Application Details',
+                          style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _InfoRow(label: 'Scheme', value: app.schemeName ?? 'N/A'),
+                  _InfoRow(label: 'Project Type', value: app.projectType ?? 'N/A'),
+                  _InfoRow(label: 'Project Cost', value: app.projectCostFormatted ?? 'N/A'),
+                  _InfoRow(label: 'Loan Amount', value: app.loanAmountFormatted ?? 'N/A'),
+                  _InfoRow(label: 'Partner', value: app.partnerName ?? 'N/A'),
+                  _InfoRow(label: 'Created', value: app.createdAt.toString().substring(0, 16)),
+                ],
               ),
             ),
             const SizedBox(height: 16),
 
             // 9-Step Disbursement Chain
-            Card(
+            GlassCard(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -74,11 +92,27 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Disbursement Chain', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text('${_completedStages(provider.disbursementStages)}/9', style: TextStyle(color: Colors.grey[600])),
+                        const Text('Disbursement Chain',
+                            style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.blue.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.blue.withOpacity(0.35)),
+                          ),
+                          child: Text('${_completedStages(provider.disbursementStages)}/9',
+                              style: const TextStyle(
+                                  color: AppColors.blue,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12)),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                     ..._buildDisbursementTimeline(context, provider.disbursementStages),
                   ],
                 ),
@@ -88,34 +122,51 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
             // Rejection info (if applicable)
             if (app.status == 'rejected') ...[
               const SizedBox(height: 16),
-              Card(
-                color: Colors.red[50],
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Icon(Icons.error, color: Colors.red[700]),
-                        const SizedBox(width: 8),
-                        Text('Rejection Details', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[700])),
-                      ]),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.red.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.red.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(children: [
+                      Icon(Icons.error_rounded, color: AppColors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Rejection Details',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.red,
+                              fontSize: 15)),
+                    ]),
+                    const SizedBox(height: 12),
+                    if (app.rejectionCategory != null)
+                      _InfoRow(label: 'Category', value: app.rejectionCategory!.toUpperCase()),
+                    if (app.rejectionReason != null)
+                      Text(app.rejectionReason!,
+                          style: const TextStyle(
+                              fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
+                    if (app.remediationSteps != null) ...[
                       const SizedBox(height: 12),
-                      if (app.rejectionCategory != null)
-                        _InfoRow(label: 'Category', value: app.rejectionCategory!.toUpperCase()),
-                      if (app.rejectionReason != null)
-                        Text(app.rejectionReason!, style: const TextStyle(fontSize: 13)),
-                      if (app.remediationSteps != null) ...[
-                        const SizedBox(height: 12),
-                        const Text('Remediation Steps:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(height: 4),
-                        Text(app.remediationSteps!, style: const TextStyle(fontSize: 13)),
-                      ],
+                      const Text('Remediation Steps:',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: AppColors.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text(app.remediationSteps!,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              height: 1.5)),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -151,25 +202,46 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isCompleted
-                          ? Colors.green
+                          ? AppColors.green
                           : isCurrent
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey[300],
+                              ? AppColors.blue
+                              : AppColors.surface,
+                      border: Border.all(
+                          color: isCompleted
+                              ? Colors.transparent
+                              : isCurrent
+                                  ? Colors.transparent
+                                  : AppColors.border,
+                          width: 1.5),
+                      boxShadow: isCurrent
+                          ? [
+                              BoxShadow(
+                                  color: AppColors.blue.withOpacity(0.5),
+                                  blurRadius: 10)
+                            ]
+                          : null,
                     ),
                     child: isCompleted
-                        ? const Icon(Icons.check, color: Colors.white, size: 16)
+                        ? const Icon(Icons.check_rounded, color: Colors.white, size: 15)
                         : isCurrent
                             ? const SizedBox(
                                 width: 12, height: 12,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
-                            : Text('${index + 1}', style: TextStyle(color: Colors.grey[600], fontSize: 12), textAlign: TextAlign.center),
+                            : Text('${index + 1}',
+                                style: const TextStyle(
+                                    color: AppColors.textMuted,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600),
+                                textAlign: TextAlign.center),
                   ),
                   if (!isLast)
                     Expanded(
                       child: Container(
                         width: 2,
-                        color: isCompleted ? Colors.green[200] : Colors.grey[200],
+                        color: isCompleted
+                            ? AppColors.green.withOpacity(0.4)
+                            : AppColors.border,
                       ),
                     ),
                 ],
@@ -187,14 +259,24 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                     Text(
                       step['name']!,
                       style: TextStyle(
-                        fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                        color: isCompleted ? Colors.green[700] : isCurrent ? Colors.blue[700] : Colors.grey[600],
+                        fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w500,
+                        color: isCompleted
+                            ? AppColors.green
+                            : isCurrent
+                                ? AppColors.textPrimary
+                                : AppColors.textMuted,
                         fontSize: 13,
                       ),
                     ),
-                    Text(step['desc']!, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    Text(step['desc']!,
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textMuted)),
                     if (fetchedStage?.notes != null && fetchedStage!.notes!.isNotEmpty)
-                      Text(fetchedStage.notes!, style: TextStyle(fontSize: 11, color: Colors.grey[500], fontStyle: FontStyle.italic)),
+                      Text(fetchedStage.notes!,
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                              fontStyle: FontStyle.italic)),
                   ],
                 ),
               ),
@@ -207,12 +289,12 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'approved': return Colors.green;
-      case 'rejected': return Colors.red;
-      case 'submitted': return Colors.blue;
-      case 'under_review': return Colors.orange;
-      case 'disbursed': return Colors.purple;
-      default: return Colors.grey;
+      case 'approved': return AppColors.green;
+      case 'rejected': return AppColors.red;
+      case 'submitted': return AppColors.blue;
+      case 'under_review': return AppColors.orange;
+      case 'disbursed': return AppColors.purple;
+      default: return AppColors.cyan;
     }
   }
 }
@@ -227,8 +309,13 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(label,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          Text(value,
+              style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13)),
         ],
       ),
     );
