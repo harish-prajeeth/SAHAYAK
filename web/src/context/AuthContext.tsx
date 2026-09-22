@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (aadhaarHash: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  clearSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: () => {},
   loading: true,
+  clearSession: () => {},
 });
 
 export function useAuth() {
@@ -30,9 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
+    // Only restore complete sessions — a token without a user (or vice versa)
+    // is a broken leftover that would otherwise dead-end the login flow
     if (savedToken && savedUser) {
       setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
@@ -47,15 +55,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const clearSession = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
 
+  const logout = clearSession;
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading, clearSession }}>
       {children}
     </AuthContext.Provider>
   );
