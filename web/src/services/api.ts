@@ -13,6 +13,16 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${url}`, { ...options, headers });
+
+  // Expired/invalid session → purge stale credentials so the app returns to
+  // the login page instead of lingering in a broken "logged in" state
+  if (res.status === 401 && !url.startsWith('/auth/')) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    throw new Error('Session expired. Please sign in again.');
+  }
+
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
