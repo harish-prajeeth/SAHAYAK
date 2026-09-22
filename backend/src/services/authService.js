@@ -32,27 +32,42 @@ class AuthService {
         return { user, token };
     }
 
-    async login(aadhaar_hash) {
-        const cached = await cacheGet(`user:aadhaar:${aadhaar_hash}`);
-        if (cached) {
-            const token = this.generateToken(cached.id);
-            return { user: cached, token };
+    async login(rawInput) {
+        const aadhaarHash = (rawInput || '').trim();
+
+        if (!aadhaarHash || aadhaarHash.length < 3) {
+            throw new Error('Please enter a valid Aadhaar or Demo ID (e.g. demo1)');
         }
 
-        const result = await pool.query(
-            'SELECT id, name, email, phone, income, caste_category, education FROM users WHERE aadhaar_hash = $1',
-            [aadhaar_hash]
-        );
+        const SELECT = 'SELECT id, name, email, phone, income, caste_category, education FROM users';
 
+        // Exact match first, then case-insensitive fallback
+        let result = await pool.query(`${SELECT} WHERE aadhaar_hash = $1`, [aadhaarHash]);
         if (result.rows.length === 0) {
-            throw new Error('User not found');
+            result = await pool.query(`${SELECT} WHERE LOWER(aadhaar_hash) = LOWER($1)`, [aadhaarHash]);
         }
 
-        const user = result.rows[0];
+        let user;
+        if (result.rows.length > 0) {
+            user = result.rows[0];
+        } else {
+            // Demo mode: auto-provision unknown IDs so no beneficiary is ever
+            // blocked at the door (production would use Aadhaar OTP instead).
+            const label = aadhaarHash.length <= 20 ? aadhaarHash : `user-${aadhaarHash.slice(-4)}`;
+            const created = await pool.query(
+                `INSERT INTO users (aadhaar_hash, name, income, caste_category, education)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING id, name, email, phone, income, caste_category, education`,
+                [aadhaarHash, `Guest (${label})`, 240000, 'SC', 'Graduate']
+            );
+            user = created.rows[0];
+            console.log(`Auto-provisioned new demo user: ${user.name} (id=${user.id})`);
+        }
+
         const token = this.generateToken(user.id);
         await cacheSet(`user:${user.id}`, user, 86400);
-        await cacheSet(`user:aadhaar:${aadhaar_hash}`, user, 86400);
-        return { user, token };
+        await cacheSet(`user:aadhaar:${aadhaarHash}`, user, 86400);
+        return { user, token, isNew: result.rows.length === 0 };
     }
 
     generateToken(userId) {

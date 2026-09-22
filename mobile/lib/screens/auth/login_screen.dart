@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       await auth.login(_aadhaarController.text.trim());
       if (auth.user == null) {
-        setState(() => _error = 'User not found. Try a demo account.');
+        setState(() => _error = auth.lastError ?? 'Login failed. Try a demo account.');
       }
     } catch (e) {
       setState(() => _error = 'Login failed: $e');

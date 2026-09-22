@@ -14,12 +14,13 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { aadhaar_hash } = req.body;
-        const { user, token } = await authService.login(aadhaar_hash);
-        res.json({ success: true, token, user });
+        const { user, token, isNew } = await authService.login(aadhaar_hash);
+        res.json({ success: true, token, user, isNew });
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(error.message === 'User not found' ? 401 : 500)
-            .json({ success: false, error: error.message });
+        console.error('Login error:', error.message);
+        const msg = error.message || 'Login failed';
+        const status = msg.includes('valid Aadhaar') ? 400 : msg === 'User not found' ? 401 : 500;
+        res.status(status).json({ success: false, error: msg });
     }
 };
 
