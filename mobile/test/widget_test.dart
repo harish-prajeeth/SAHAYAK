@@ -1,30 +1,33 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:surakshit_mobile/main.dart';
+import 'package:surakshit_mobile/app.dart';
+import 'package:surakshit_mobile/providers/auth_provider.dart';
+import 'package:surakshit_mobile/providers/scheme_provider.dart';
+import 'package:surakshit_mobile/providers/partner_provider.dart';
+import 'package:surakshit_mobile/providers/application_provider.dart';
+import 'package:surakshit_mobile/utils/i18n.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App builds and shows the login screen', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => LanguageManager()),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => SchemeProvider()),
+          ChangeNotifierProvider(create: (_) => PartnerProvider()),
+          ChangeNotifierProvider(create: (_) => ApplicationProvider()),
+        ],
+        child: const SurakshitApp(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Login screen essentials
+    expect(find.text('Welcome to'), findsOneWidget);
+    expect(find.text('Surakshit'), findsWidgets);
   });
 }

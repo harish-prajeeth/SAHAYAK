@@ -514,7 +514,7 @@ class I18n {
     final translations = _translations[key];
     if (translations == null) return key;
 
-    final lang = AppLanguageProvider.currentLanguage ?? AppLanguage.english;
+    final lang = AppLanguageProvider.currentLanguage;
     String text = translations[lang] ?? translations[AppLanguage.english] ?? key;
 
     // Replace parameters like {name}
