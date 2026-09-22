@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -88,7 +89,7 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.card,
         elevation: 0,
         margin: EdgeInsets.zero,
@@ -173,12 +174,11 @@ class AppTheme {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.blue),
-      refreshIndicatorTheme: const RefreshIndicatorThemeData(color: AppColors.blue),
       // Inter type scale — the premium typographic foundation.
       textTheme: GoogleFonts.interTextTheme(const TextTheme(
         headlineSmall: TextStyle(

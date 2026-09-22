@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../providers/partner_provider.dart';
 import '../../api/api_service.dart';
 import '../../models/partner.dart';
 import '../../utils/theme.dart';
